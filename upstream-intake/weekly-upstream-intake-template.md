@@ -5,6 +5,9 @@ Use the same template when a review item must be escalated for a critical decisi
 
 ## Review Metadata
 
+- Review id:
+- Opened: `YYYY-MM-DD HH-mm-ss KST`
+- Recorded by agent:
 - Review date:
 - Reviewer:
 - Upstream window reviewed:

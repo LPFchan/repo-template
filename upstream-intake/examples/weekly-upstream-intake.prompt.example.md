@@ -11,14 +11,14 @@ Use the canonical workflow and rules here:
 
 - [upstream-intake.instructions.example.md](upstream-intake.instructions.example.md)
 - [weekly-upstream-intake.skill.example.md](weekly-upstream-intake.skill.example.md)
-- [weekly-upstream-intake-template.md](weekly-upstream-intake-template.md)
-- [operator-weekly-brief-template.md](operator-weekly-brief-template.md)
-- [intake-method.md](intake-method.md)
+- [../weekly-upstream-intake-template.md](../weekly-upstream-intake-template.md)
+- [../operator-weekly-brief-template.md](../operator-weekly-brief-template.md)
+- [../intake-method.md](../intake-method.md)
 
 Expected outputs:
 
-1. A full internal record under [reports/internal-records/README.md](reports/internal-records/README.md)
-2. A separate operator brief under [reports/operator-briefs/README.md](reports/operator-briefs/README.md)
+1. A full internal record under [../reports/internal-records/README.md](../reports/internal-records/README.md)
+2. A separate operator brief under [../reports/operator-briefs/README.md](../reports/operator-briefs/README.md)
 
 Do not keep the result at release-note summary level.
 Use internet lookup when vendor policy, pricing, legal terms, or external product behavior affects the decision.

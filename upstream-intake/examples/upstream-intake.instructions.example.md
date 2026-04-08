@@ -44,7 +44,7 @@ If a sentence still works without naming the concrete product, vendor, feature, 
 1. Define the exact upstream window being reviewed.
 2. Gather evidence from release notes and, when needed, the underlying commits, PRs, docs, and code paths.
 3. Group related changes into candidate decisions instead of treating every commit as equally important.
-4. For each candidate change, fill or mirror the fields in [weekly-upstream-intake-template.md](weekly-upstream-intake-template.md).
+4. For each candidate change, fill or mirror the fields in [../weekly-upstream-intake-template.md](../weekly-upstream-intake-template.md).
    - Do not leave referents implicit.
    - If needed, use internet lookup to resolve vendor, product, pricing, legal, or policy ambiguity before filling the record.
 5. Classify the result as `accept`, `adapt`, `decline`, or `defer pending operator decision`.
@@ -74,8 +74,8 @@ Prefer a short, conversational mini-brief for each operator-facing item, optiona
 
 A complete upstream review should leave behind:
 
-- a decision record that matches [weekly-upstream-intake-template.md](weekly-upstream-intake-template.md)
-- a separate operator-facing summary using [operator-weekly-brief-template.md](operator-weekly-brief-template.md)
+- a decision record that matches [../weekly-upstream-intake-template.md](../weekly-upstream-intake-template.md)
+- a separate operator-facing summary using [../operator-weekly-brief-template.md](../operator-weekly-brief-template.md)
 - explicit notes on verification, compatibility details, and follow-up work
 
 The operator-facing brief must be understandable without prior chat context.

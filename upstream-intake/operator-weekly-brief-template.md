@@ -10,6 +10,9 @@ The operator brief should translate that material into a shorter, more natural s
 
 ## Review Metadata
 
+- Review id:
+- Opened: `YYYY-MM-DD HH-mm-ss KST`
+- Recorded by agent:
 - Review date:
 - Upstream window:
 - Baseline reviewed against:

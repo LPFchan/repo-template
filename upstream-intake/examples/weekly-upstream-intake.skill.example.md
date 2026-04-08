@@ -29,7 +29,7 @@ Use this skill when a downstream fork needs a repeatable review of upstream chan
    - Separate product-shaping work from routine bug fixes.
 
 4. Analyze each candidate deeply.
-   - Follow the drill-down and ambiguity rules in [upstream-intake.instructions.example.md](upstream-intake.instructions.example.md) and [intake-method.md](intake-method.md).
+   - Follow the drill-down and ambiguity rules in [upstream-intake.instructions.example.md](upstream-intake.instructions.example.md) and [../intake-method.md](../intake-method.md).
    - Make sure each candidate covers the exact upstream and local surfaces, the before and after state, the concrete consequence, what is not changing, overlap or collision with local work, tradeoffs, compatibility details, and at least one literal user or operator scenario.
    - If any of this depends on vendor policy, pricing, legal terms, or external product behavior, use internet lookup and prefer official sources.
 
@@ -38,13 +38,13 @@ Use this skill when a downstream fork needs a repeatable review of upstream chan
    - If the change is blocked on product direction, public contract risk, or security-vs-compatibility tradeoffs, escalate.
 
 6. Fill the canonical template.
-   - Use [weekly-upstream-intake-template.md](weekly-upstream-intake-template.md).
-   - Use [intake-method.md](intake-method.md) to keep the analysis and recommendation shape consistent.
-   - Write the full record under [reports/internal-records/README.md](reports/internal-records/README.md).
+   - Use [../weekly-upstream-intake-template.md](../weekly-upstream-intake-template.md).
+   - Use [../intake-method.md](../intake-method.md) to keep the analysis and recommendation shape consistent.
+   - Write the full record under [../reports/internal-records/README.md](../reports/internal-records/README.md).
 
 7. Produce the operator brief.
-   - Use [operator-weekly-brief-template.md](operator-weekly-brief-template.md) for the lighter summary.
-   - Store it as a separate artifact under [reports/operator-briefs/README.md](reports/operator-briefs/README.md).
+   - Use [../operator-weekly-brief-template.md](../operator-weekly-brief-template.md) for the lighter summary.
+   - Store it as a separate artifact under [../reports/operator-briefs/README.md](../reports/operator-briefs/README.md).
    - Follow the operator brief template and instruction file instead of restating their field or formatting rules here.
    - Keep the full reasoning in the internal record; the operator brief is the shorter human-facing translation.
 

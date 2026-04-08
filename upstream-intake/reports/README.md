@@ -17,14 +17,14 @@ Use one paired set of files per review window.
 
 Recommended pattern:
 
-- `internal-records/YYYY-MM-DD-<scope>.md`
-- `operator-briefs/YYYY-MM-DD-<scope>-operator-brief.md`
+- `internal-records/UPS-YYYYMMDD-NNN-<scope>.md`
+- `operator-briefs/UPS-YYYYMMDD-NNN-<scope>-operator-brief.md`
 
 Examples:
 
-- `internal-records/2026-04-07-v1.2.3.md`
-- `operator-briefs/2026-04-07-v1.2.3-operator-brief.md`
-- `internal-records/2026-04-14-release-to-main.md`
+- `internal-records/UPS-20260407-001-v1.2.3.md`
+- `operator-briefs/UPS-20260407-001-v1.2.3-operator-brief.md`
+- `internal-records/UPS-20260414-001-release-to-main.md`
 
 ## Expected Contents
 
