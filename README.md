@@ -4,12 +4,25 @@ repo-template is a framework for running ambitious projects without losing coher
 
 ## Core Pieces
 
+- Canonical truth
+  - `SPEC.md`, `STATUS.md`, and `PLANS.md` keep the project's source of truth, current reality, and accepted future direction distinct.
+- Intake and routing
+  - `INBOX.md` and the orchestrator make sure new work lands in the right place instead of disappearing into chat.
+- Durable memory
+  - `research/`, `records/decisions/`, and `records/agent-worklogs/` preserve what was learned, what was decided, and what actually happened.
+- Provenance
+  - Stable IDs and commit trailers keep artifacts, agents, and commits connected over time.
+- Optional upstream maintenance
+  - `upstream-intake/` gives upstream-tracking projects a disciplined review and escalation system.
+
+## This Repo Includes
+
 - [repo-operating-model.md](repo-operating-model.md)
-  - The rules layer for the system. This replaces a separate instruction file.
+  - The canonical rules layer.
 - [scaffold/README.md](scaffold/README.md)
   - The ready-to-copy repo skeleton.
 - [skills/README.md](skills/README.md)
-  - Optional procedural glue for environments that support reusable skills.
+  - Optional procedural workflows for environments that support reusable skills.
 - [recreate-prompt.md](recreate-prompt.md)
   - The quick-start prompt for rebuilding this system in another repo.
 
