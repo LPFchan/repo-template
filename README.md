@@ -2,7 +2,7 @@
 
 repo-template is a framework for running ambitious projects without losing coherence. It gives every project a canonical home for memory, direction, research, and execution, so scattered ideas, buried decisions, drifting specs, and disconnected execution history stop derailing the work.
 
-## What Is Canonical
+## Core Pieces
 
 - [repo-operating-model.md](repo-operating-model.md)
   - The rules layer for the system. This replaces a separate instruction file.
@@ -11,25 +11,7 @@ repo-template is a framework for running ambitious projects without losing coher
 - [skills/README.md](skills/README.md)
   - Optional procedural glue for environments that support reusable skills.
 - [recreate-prompt.md](recreate-prompt.md)
-  - The single recreate prompt for rebuilding this system in another repo.
-
-## Layout
-
-```text
-repo-operating-model.md
-recreate-prompt.md
-scaffold/
-  SPEC.md
-  STATUS.md
-  PLANS.md
-  INBOX.md
-  research/
-  records/
-  upstream-intake/
-skills/
-  repo-orchestrator/
-  upstream-intake/
-```
+  - The quick-start prompt for rebuilding this system in another repo.
 
 ## Getting Started
 
@@ -62,7 +44,3 @@ After a repo adopts this system, every commit should carry these lowercase trail
 - `artifacts: <artifact-id>[, <artifact-id>...]`
 
 Artifact-less commits should be treated as bootstrap or migration exceptions only.
-
-## Design Goal
-
-This repo is meant to be generic enough for any codebase, but opinionated enough that operators and agents can work for a long time without losing track of what is true, what is planned, what was learned, and what actually happened.
