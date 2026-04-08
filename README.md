@@ -1,18 +1,6 @@
-# Repo Template
+# repo-template
 
-This repo packages a generic operating system for repos run by one operator plus many agents.
-
-It keeps these layers separate on purpose:
-
-- canonical truth
-- current operational reality
-- accepted future plans
-- curated research
-- durable decisions
-- execution history
-- optional upstream maintenance
-
-That separation is the product. It keeps a repo from turning into a chat dump or a changelog masquerading as truth.
+repo-template is a framework for running ambitious projects without losing coherence. It gives every project a canonical home for memory, direction, research, and execution, so scattered ideas, buried decisions, drifting specs, and disconnected execution history stop derailing the work.
 
 ## What Is Canonical
 
