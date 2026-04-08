@@ -22,14 +22,14 @@ That separation is the product. It keeps a repo from turning into a chat dump or
   - The ready-to-copy repo skeleton.
 - [skills/README.md](skills/README.md)
   - Optional procedural glue for environments that support reusable skills.
-- [recreate.prompt.md](recreate.prompt.md)
+- [recreate-prompt.md](recreate-prompt.md)
   - The single recreate prompt for rebuilding this system in another repo.
 
 ## Layout
 
 ```text
 repo-operating-model.md
-recreate.prompt.md
+recreate-prompt.md
 scaffold/
   SPEC.md
   STATUS.md
@@ -45,12 +45,11 @@ skills/
 
 ## Getting Started
 
-1. Read [repo-operating-model.md](repo-operating-model.md).
-2. Copy the contents of [scaffold/](scaffold/) into the target repo as-is.
-3. Fill in `SPEC.md`, `STATUS.md`, `PLANS.md`, and `INBOX.md`.
-4. Keep `upstream-intake/` if the repo is a fork, tracks an upstream closely, or wants recurring upstream review. Otherwise remove it or leave it dormant.
-5. Adapt [skills/README.md](skills/README.md) only if the target environment supports reusable skills.
-6. Seed the system with at least one real `IBX-*`, `LOG-*`, and `DEC-*` artifact so the repo starts grounded in actual work.
+1. As the operator, give your agent [recreate-prompt.md](recreate-prompt.md) and point it at the target repo.
+2. Tell the agent whether `upstream-intake/` should stay active, stay dormant, or be omitted for that repo.
+3. Have the agent instantiate the [scaffold/](scaffold/) around the real project, including `project-id`, `SPEC.md`, `STATUS.md`, `PLANS.md`, and `INBOX.md`.
+4. Review the first seeded artifacts together, especially the initial `IBX-*`, `LOG-*`, and `DEC-*` items, and correct any routing mistakes early.
+5. If your environment supports reusable workflows, then layer in [skills/README.md](skills/README.md). Otherwise stop at the scaffold.
 
 ## Provenance Rules
 
