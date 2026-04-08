@@ -1,13 +1,15 @@
 # <Project Name> Spec
 
-This document is the canonical statement of what the project is supposed to be.
-Keep it durable.
-Do not use it as a changelog, inbox, or weekly narrative.
+Replace bracketed placeholders with real project truth.
+
+This file is the canonical statement of what the project is supposed to be.
+Keep it durable. Do not use it as a changelog, inbox, or weekly narrative.
 
 ## Identity
 
 - Project:
 - Canonical repo:
+- Project id:
 - Operator:
 - Last updated:
 - Related decisions:

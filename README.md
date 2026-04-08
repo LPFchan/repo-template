@@ -1,96 +1,81 @@
 # Repo Template
 
-This repo is a generic operating template for repos managed by one operator plus many agents.
+This repo packages a generic operating system for repos run by one operator plus many agents.
 
-It is designed for projects that want:
+It keeps these layers separate on purpose:
 
-- canonical repo-local truth docs
-- clean separation between plans, decisions, research, and execution logs
-- low-friction intake from chat, messenger, or operator notes
-- explicit provenance for agent-written artifacts
-- a reusable upstream-intake package for forks and downstream products
+- canonical truth
+- current operational reality
+- accepted future plans
+- curated research
+- durable decisions
+- execution history
+- optional upstream maintenance
 
-This is broader than an upstream-intake kit.
-Upstream intake is one subsystem inside the larger repo operating model.
+That separation is the product. It keeps a repo from turning into a chat dump or a changelog masquerading as truth.
 
-## What This Repo Includes
+## What Is Canonical
 
 - [repo-operating-model.md](repo-operating-model.md)
-  - The canonical model for how an operator plus agents should manage repo truth, intake, research, decisions, and worklogs.
-- [repo-templates/README.md](repo-templates/README.md)
-  - Concrete starter templates for `SPEC.md`, `STATUS.md`, `PLANS.md`, `INBOX.md`, research memos, decisions, and agent worklogs.
-- [upstream-intake/README.md](upstream-intake/README.md)
-  - A reusable upstream-review package for forks, downstream products, or any repo that needs structured upstream maintenance.
-- [repo-template.instructions.example.md](repo-template.instructions.example.md)
-  - Example repo-level instruction file.
-- [repo-template.skill.example.md](repo-template.skill.example.md)
-  - Example procedural repo skill.
-- [repo-template.prompt.example.md](repo-template.prompt.example.md)
-  - Example thin launcher prompt.
-- [recreate-repo-template.prompt.md](recreate-repo-template.prompt.md)
-  - A prompt for recreating this whole system in another repo.
+  - The rules layer for the system. This replaces a separate instruction file.
+- [scaffold/README.md](scaffold/README.md)
+  - The ready-to-copy repo skeleton.
+- [skills/README.md](skills/README.md)
+  - Optional procedural glue for environments that support reusable skills.
+- [recreate.prompt.md](recreate.prompt.md)
+  - The single recreate prompt for rebuilding this system in another repo.
 
-## Core Model
+## Layout
 
-The repo operating model separates these layers on purpose:
+```text
+repo-operating-model.md
+recreate.prompt.md
+scaffold/
+  SPEC.md
+  STATUS.md
+  PLANS.md
+  INBOX.md
+  research/
+  records/
+  upstream-intake/
+skills/
+  repo-orchestrator/
+  upstream-intake/
+```
 
-1. Canonical truth
-2. Accepted future direction
-3. Curated exploration
-4. Curated decisions
-5. Raw operational activity
-6. Recurring upstream maintenance
+## Getting Started
 
-That separation is the point.
-It keeps a repo from turning into a chat dump or a changelog masquerading as truth.
+1. Read [repo-operating-model.md](repo-operating-model.md).
+2. Copy the contents of [scaffold/](scaffold/) into the target repo as-is.
+3. Fill in `SPEC.md`, `STATUS.md`, `PLANS.md`, and `INBOX.md`.
+4. Keep `upstream-intake/` if the repo is a fork, tracks an upstream closely, or wants recurring upstream review. Otherwise remove it or leave it dormant.
+5. Adapt [skills/README.md](skills/README.md) only if the target environment supports reusable skills.
+6. Seed the system with at least one real `IBX-*`, `LOG-*`, and `DEC-*` artifact so the repo starts grounded in actual work.
 
-## Canonical Artifact Set
+## Provenance Rules
 
-The starter artifact set is:
+Stable artifact types use these prefixes:
 
-- `SPEC.md`
-- `STATUS.md`
-- `PLANS.md`
-- `INBOX.md`
-- `research/`
-- `records/decisions/`
-- `records/agent-worklogs/`
-- `upstream-intake/`
+- `IBX-*` for inbox intake
+- `RSH-*` for research memos
+- `DEC-*` for decisions
+- `LOG-*` for worklogs
+- `UPS-*` for upstream intake cycles
 
-## Provenance Model
+Stable-ID-bearing artifacts should open with:
 
-This template assumes:
-
-- `project-id` identifies the repo or workspace
-- `agent-id` identifies one conversation or run, 1:1
-- subagents get their own `agent-id`s
-- deeper lineage is resolved off-Git from `agent-id`
-
-Stable-ID-bearing artifacts should include:
-
-- stable id
 - `Opened: YYYY-MM-DD HH-mm-ss KST`
 - `Recorded by agent: <agent-id>`
 
-Recommended Git commit trailers:
+After a repo adopts this system, every commit should carry these lowercase trailers:
 
-- `Repo-Agent: <agent-id>`
-- `Repo-Artifact: <artifact-id>`
-- `Repo-Project: <project-id>`
+- `project: <project-id>`
+- `agent: <agent-id>`
+- `role: orchestrator|worker|subagent|operator`
+- `artifacts: <artifact-id>[, <artifact-id>...]`
 
-Optional:
-
-- `Repo-Parent-Agent: <agent-id>`
-- `Repo-Role: orchestrator|worker|subagent`
-
-## How To Reuse This Repo
-
-1. Read [repo-operating-model.md](repo-operating-model.md).
-2. Copy the starter files from [repo-templates/README.md](repo-templates/README.md) into the target repo.
-3. Adapt the example prompt, skill, or instruction files to match the target environment.
-4. If the target repo has upstream dependencies or is a fork, copy or adapt [upstream-intake/README.md](upstream-intake/README.md).
-5. Seed the system with one real decision, one real worklog, and one real intake item so the repo starts grounded in actual work.
+Artifact-less commits should be treated as bootstrap or migration exceptions only.
 
 ## Design Goal
 
-This template is meant to be generic enough for any repo, but structured enough that an operator and many agents can keep working without losing the source of truth.
+This repo is meant to be generic enough for any codebase, but opinionated enough that operators and agents can work for a long time without losing track of what is true, what is planned, what was learned, and what actually happened.

@@ -1,5 +1,7 @@
 # <Project Name> Plans
 
+Replace bracketed placeholders with accepted future direction only.
+
 This document contains accepted future direction only.
 Do not put raw brainstorms or untriaged intake here.
 

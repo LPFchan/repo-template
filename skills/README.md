@@ -1,0 +1,15 @@
+# Skills
+
+This directory is optional.
+
+Use it only when the target environment supports reusable procedural skills or workflows.
+
+What lives here:
+
+- `repo-orchestrator/`
+  - Generic routing workflow for truth, status, plans, research, decisions, worklogs, and inbox intake.
+- `upstream-intake/`
+  - Companion workflow for the optional upstream-review module inside `scaffold/`.
+
+Keep skills procedural.
+Do not duplicate the canonical rules from `repo-operating-model.md` inside them.

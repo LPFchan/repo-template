@@ -1,5 +1,7 @@
 # <Project Name> Status
 
+Replace bracketed placeholders with current accepted reality.
+
 This document tracks current operational truth.
 Update it when the project's real state changes.
 Do not use it as a transcript or a scratchpad.
@@ -19,7 +21,7 @@ Write a short paragraph describing what is true right now.
 
 ## Active Phases Or Tracks
 
-### <Phase or Track Name>
+### <Phase Or Track Name>
 
 - Goal:
 - Status: `not started` | `in progress` | `blocked` | `done`
@@ -30,7 +32,7 @@ Write a short paragraph describing what is true right now.
 - Risks:
 - Related ids:
 
-### <Phase or Track Name>
+### <Phase Or Track Name>
 
 - Goal:
 - Status:

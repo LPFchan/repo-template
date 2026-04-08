@@ -1,12 +1,19 @@
 ---
 name: weekly-upstream-intake
-description: "Example skill for running a recurring upstream intake review in a downstream fork."
+description: "Run recurring upstream intake review inside the Repo Template scaffold."
 argument-hint: "Upstream release, compare window, or refs to review"
 ---
 
 # Weekly Upstream Intake
 
-Use this skill when a downstream fork needs a repeatable review of upstream changes.
+Use this skill with:
+
+- [../../scaffold/upstream-intake/README.md](../../scaffold/upstream-intake/README.md)
+- [../../scaffold/upstream-intake/intake-method.md](../../scaffold/upstream-intake/intake-method.md)
+- [../../scaffold/upstream-intake/weekly-upstream-intake-template.md](../../scaffold/upstream-intake/weekly-upstream-intake-template.md)
+- [../../scaffold/upstream-intake/operator-weekly-brief-template.md](../../scaffold/upstream-intake/operator-weekly-brief-template.md)
+
+Use it when a downstream fork needs a repeatable review of upstream changes.
 
 ## What This Skill Produces
 
@@ -29,7 +36,7 @@ Use this skill when a downstream fork needs a repeatable review of upstream chan
    - Separate product-shaping work from routine bug fixes.
 
 4. Analyze each candidate deeply.
-   - Follow the drill-down and ambiguity rules in [upstream-intake.instructions.example.md](upstream-intake.instructions.example.md) and [../intake-method.md](../intake-method.md).
+   - Follow the drill-down and ambiguity rules in [../../scaffold/upstream-intake/intake-method.md](../../scaffold/upstream-intake/intake-method.md).
    - Make sure each candidate covers the exact upstream and local surfaces, the before and after state, the concrete consequence, what is not changing, overlap or collision with local work, tradeoffs, compatibility details, and at least one literal user or operator scenario.
    - If any of this depends on vendor policy, pricing, legal terms, or external product behavior, use internet lookup and prefer official sources.
 
@@ -38,15 +45,20 @@ Use this skill when a downstream fork needs a repeatable review of upstream chan
    - If the change is blocked on product direction, public contract risk, or security-vs-compatibility tradeoffs, escalate.
 
 6. Fill the canonical template.
-   - Use [../weekly-upstream-intake-template.md](../weekly-upstream-intake-template.md).
-   - Use [../intake-method.md](../intake-method.md) to keep the analysis and recommendation shape consistent.
-   - Write the full record under [../reports/internal-records/README.md](../reports/internal-records/README.md).
+   - Use [../../scaffold/upstream-intake/weekly-upstream-intake-template.md](../../scaffold/upstream-intake/weekly-upstream-intake-template.md).
+   - Use [../../scaffold/upstream-intake/intake-method.md](../../scaffold/upstream-intake/intake-method.md) to keep the analysis and recommendation shape consistent.
+   - Write the full record under [../../scaffold/upstream-intake/reports/internal-records/README.md](../../scaffold/upstream-intake/reports/internal-records/README.md).
 
 7. Produce the operator brief.
-   - Use [../operator-weekly-brief-template.md](../operator-weekly-brief-template.md) for the lighter summary.
-   - Store it as a separate artifact under [../reports/operator-briefs/README.md](../reports/operator-briefs/README.md).
-   - Follow the operator brief template and instruction file instead of restating their field or formatting rules here.
+   - Use [../../scaffold/upstream-intake/operator-weekly-brief-template.md](../../scaffold/upstream-intake/operator-weekly-brief-template.md) for the lighter summary.
+   - Store it as a separate artifact under [../../scaffold/upstream-intake/reports/operator-briefs/README.md](../../scaffold/upstream-intake/reports/operator-briefs/README.md).
    - Keep the full reasoning in the internal record; the operator brief is the shorter human-facing translation.
+
+8. If Git commits happen as part of the intake or merge follow-up, include:
+   - `project: <project-id>`
+   - `agent: <agent-id>`
+   - `role: orchestrator|worker|subagent|operator`
+   - `artifacts: UPS-..., LOG-..., DEC-...`
 
 ## Escalation Triggers
 
