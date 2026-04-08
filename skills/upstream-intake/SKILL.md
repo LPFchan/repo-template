@@ -1,6 +1,6 @@
 ---
 name: weekly-upstream-intake
-description: "Run recurring upstream intake review inside the Repo Template scaffold."
+description: "Run recurring upstream intake review inside the repo-template scaffold."
 argument-hint: "Upstream release, compare window, or refs to review"
 ---
 
@@ -48,11 +48,13 @@ Use it when a downstream fork needs a repeatable review of upstream changes.
    - Use [../../scaffold/upstream-intake/weekly-upstream-intake-template.md](../../scaffold/upstream-intake/weekly-upstream-intake-template.md).
    - Use [../../scaffold/upstream-intake/intake-method.md](../../scaffold/upstream-intake/intake-method.md) to keep the analysis and recommendation shape consistent.
    - Write the full record under [../../scaffold/upstream-intake/reports/internal-records/README.md](../../scaffold/upstream-intake/reports/internal-records/README.md).
+   - Check the destination directory `README.md` first and mirror its canonical example and level of completeness.
 
 7. Produce the operator brief.
    - Use [../../scaffold/upstream-intake/operator-weekly-brief-template.md](../../scaffold/upstream-intake/operator-weekly-brief-template.md) for the lighter summary.
    - Store it as a separate artifact under [../../scaffold/upstream-intake/reports/operator-briefs/README.md](../../scaffold/upstream-intake/reports/operator-briefs/README.md).
    - Keep the full reasoning in the internal record; the operator brief is the shorter human-facing translation.
+   - Check the destination directory `README.md` first so the final artifact reads like a finished brief, not a field dump.
 
 8. If Git commits happen as part of the intake or merge follow-up, include:
    - `project: <project-id>`

@@ -1,6 +1,6 @@
 ---
 name: repo-orchestrator
-description: "Route work into the correct artifact layer in a repo that uses Repo Template."
+description: "Route work into the correct artifact layer in a repo that uses repo-template."
 argument-hint: "Task, intake item, or maintenance request"
 ---
 
@@ -51,6 +51,8 @@ Use this skill with:
 4. Write the artifact with provenance.
    - Include `Opened: YYYY-MM-DD HH-mm-ss KST`
    - Include `Recorded by agent: <agent-id>`
+   - Before drafting, read the destination directory's `README.md` and any explicit template.
+   - Match the local default shape or canonical example unless the task has a clear reason to differ.
 
 5. Preserve the separation rules.
    - Do not write speculation straight into `PLANS.md`.

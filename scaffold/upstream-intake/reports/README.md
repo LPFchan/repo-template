@@ -34,4 +34,6 @@ Each review should leave behind:
 - a separate concise operator-facing summary in [operator-briefs/](operator-briefs/README.md) using [../operator-weekly-brief-template.md](../operator-weekly-brief-template.md)
 - links to any follow-up PRs, issues, ADRs, or notes
 
+The child directory `README.md` files include the canonical example shapes to imitate.
+
 Do not store one-off chat summaries here unless they have been normalized into the intake format.

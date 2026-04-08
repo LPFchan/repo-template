@@ -7,6 +7,7 @@ What to build:
 
 1. One canonical `repo-operating-model.md` document that acts as the rules layer.
 2. One ready-to-copy `scaffold/` directory containing:
+   - optional thin `AGENTS.md` and `CLAUDE.md` compatibility files for tools that look for repo-root instructions
    - `SPEC.md`
    - `STATUS.md`
    - `PLANS.md`
@@ -53,6 +54,8 @@ Structure requirements:
 
 - keep the operating rules in one canonical document
 - make `scaffold/` the copyable skeleton, not a loose library of snippets
+- allow thin compatibility entrypoints such as `AGENTS.md` or `CLAUDE.md`, but keep them subordinate to the canonical rules
+- close the shape gap for durable artifact directories by making each local `README.md` define both the rules and a canonical example shape when practical
 - keep optional procedural skills outside the scaffold
 - avoid separate instruction and launcher-prompt layers unless the target environment truly needs them
 

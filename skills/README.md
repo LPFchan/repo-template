@@ -4,6 +4,8 @@ This directory is optional.
 
 Use it only when the target environment supports reusable procedural skills or workflows.
 
+Each reusable workflow should live at `skills/<name>/SKILL.md`.
+
 What lives here:
 
 - `repo-orchestrator/`
@@ -13,3 +15,16 @@ What lives here:
 
 Keep skills procedural.
 Do not duplicate the canonical rules from `repo-operating-model.md` inside them.
+
+Use `SKILL.md` for:
+
+- step-by-step procedures
+- required inputs and expected outputs
+- escalation triggers
+- links to supporting templates or reference docs
+
+Do not use `SKILL.md` for:
+
+- repo-wide policy
+- general project truth
+- local or personal preferences that belong in tool-specific memory files

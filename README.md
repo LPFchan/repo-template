@@ -11,6 +11,7 @@ repo-template is a framework for running ambitious projects without losing coher
 | Durable memory | `research/`, `records/decisions/`, and `records/agent-worklogs/` preserve what was learned, what was decided, and what actually happened. |
 | Provenance | Stable IDs and commit trailers keep artifacts, agents, and commits connected over time. |
 | Optional upstream maintenance | `upstream-intake/` gives upstream-tracking projects a disciplined review and escalation system. |
+| Agent compatibility | Optional `AGENTS.md` and `CLAUDE.md` provide tool-specific entrypoints that defer to the same canonical repo rules. |
 
 ## This Repo Includes
 
@@ -28,6 +29,25 @@ repo-template is a framework for running ambitious projects without losing coher
 3. Have the agent instantiate the [scaffold/](scaffold/) around the real project, including `project-id`, `SPEC.md`, `STATUS.md`, `PLANS.md`, and `INBOX.md`.
 4. Review the first seeded artifacts together, especially the initial `IBX-*`, `LOG-*`, and `DEC-*` items, and correct any routing mistakes early.
 5. If your environment supports reusable workflows, then layer in [skills/README.md](skills/README.md). Otherwise stop at the scaffold.
+
+## Instruction File Mapping
+
+- `AGENTS.md`
+  - Best as a repo-level entrypoint for agentic tools that look for shared instructions.
+  - Keep it thin and point it back to `repo-operating-model.md`.
+- `CLAUDE.md`
+  - Anthropic Claude Code project memory file.
+  - Keep it thin and, when practical, import or reference `repo-operating-model.md` instead of restating policy.
+- `SKILL.md`
+  - A reusable workflow file that lives under `skills/<name>/SKILL.md`.
+  - Use it for bounded procedures, outputs, and escalation triggers, not repo-wide truth.
+
+## Writing Discipline
+
+repo-template now treats artifact shape as part of the contract, not just nice-to-have docs.
+
+- The local directory `README.md` should explain what belongs there and show the preferred finished artifact shape.
+- Agents should read that guide before creating new `RSH-*`, `DEC-*`, `LOG-*`, or upstream intake artifacts.
 
 ## Provenance Rules
 

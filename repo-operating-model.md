@@ -1,6 +1,6 @@
 # Repo Operating Model
 
-This document is the instruction layer for Repo Template.
+This document is the instruction layer for repo-template.
 
 ## Purpose
 
@@ -29,6 +29,49 @@ Every repo using this system should separate these surfaces:
 | `records/decisions/` | Durable decision records with rationale. | append-only by new file |
 | `records/agent-worklogs/` | Execution history for runs, agents, and subagents. | append-only |
 | `upstream-intake/` | Optional but recommended upstream review subsystem. | append by cadence |
+
+## Agent Compatibility Files
+
+Some coding agents look for repo-root instruction files such as `AGENTS.md` or `CLAUDE.md`.
+
+When a repo using this model includes them:
+
+- they should act as entrypoints into the canonical rules, not competing policy documents
+- they should stay short enough that they do not drift from `repo-operating-model.md`
+- `CLAUDE.md` may import or reference `repo-operating-model.md` when the tool supports it
+- `SKILL.md` stays separate because it defines a bounded reusable procedure, not repo-wide policy
+
+Recommended split:
+
+- `repo-operating-model.md`
+  - canonical rules
+- `AGENTS.md`
+  - tool-facing summary plus read order
+- `CLAUDE.md`
+  - Claude Code memory shim into the same rules
+- `skills/<name>/SKILL.md`
+  - procedure for one repeatable workflow
+
+## Artifact Writing Discipline
+
+Macro structure is not enough on its own. Agents should not improvise document shape when the repo already defines one.
+
+When writing repo artifacts:
+
+- read the nearest canonical surface, directory `README.md`, and any explicit template before drafting
+- if the local `README.md` includes a default shape or canonical example, follow it by default
+- default to the established section order for that artifact type unless the task has a strong reason to differ
+- write normalized repo records, not chat transcripts or stream-of-consciousness notes
+- keep facts, decisions, open questions, and next steps clearly separated
+- summarize evidence and outcomes instead of pasting raw command output unless the literal output is the artifact
+- prefer short declarative bullets or paragraphs over vague filler
+
+When a directory exists to store a durable artifact type, it should ideally include:
+
+- a `README.md` that explains what belongs there
+- a default shape or canonical example inside that same `README.md`
+
+That single guide helps future agents copy a house style instead of inventing one.
 
 ## Separation Rules
 
