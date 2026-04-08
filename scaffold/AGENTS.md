@@ -28,6 +28,7 @@ When writing into an artifact directory, read that directory's `README.md` first
 - Prefer the local `README.md` shape over ad hoc formatting when it defines one.
 - If commit hooks are enabled, your commit message must satisfy the repo provenance check before the commit is allowed.
 - If CI commit checks are enabled, your pushed commits must satisfy the same provenance rules remotely.
+- Prefer appending to the current relevant `LOG-*` instead of creating a new one unless the work is materially distinct.
 
 ## Enforcement
 

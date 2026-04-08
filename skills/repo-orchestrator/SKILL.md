@@ -70,6 +70,7 @@ Use this skill with:
    - `role: orchestrator|worker|subagent|operator`
    - `artifacts: <artifact-id>[, <artifact-id>...]`
    - If commit hooks are enabled, make the commit message pass the local validator before retrying.
+   - Prefer referencing and updating an existing relevant `LOG-*` before creating a new one.
 
 8. If the task is recurring upstream maintenance, use `upstream-intake/` instead of inventing a parallel workflow.
 

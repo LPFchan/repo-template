@@ -69,6 +69,12 @@ Normal commits should include:
 
 Bootstrap or migration exceptions must be explicit in the commit message.
 
+Artifact linkage should stay useful, not bureaucratic.
+
+- A normal commit should reference at least one relevant artifact, but that artifact does not need to be newly created.
+- Agents should prefer appending to the current relevant `LOG-*` when the same workstream continues.
+- A new `LOG-*` should be created only when the work is distinct enough that a separate execution record improves clarity.
+
 ## Prompt For Adopted Repos
 
 Use a migration prompt like this when introducing both local hooks and CI to an already-adopted repo:

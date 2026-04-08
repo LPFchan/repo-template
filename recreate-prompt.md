@@ -51,6 +51,8 @@ Commit provenance requirements:
   - `role: orchestrator|worker|subagent|operator`
   - `artifacts: <artifact-id>[, <artifact-id>...]`
 - artifact-less commits should be bootstrap or migration exceptions only
+- a normal commit may reference an existing updated `LOG-*`, `DEC-*`, `RSH-*`, or other relevant artifact
+- agents should append to the current relevant `LOG-*` instead of creating a new one unless a distinct execution thread needs its own record
 
 Commit hook option:
 
