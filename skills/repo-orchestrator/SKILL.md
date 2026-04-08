@@ -8,8 +8,7 @@ argument-hint: "Task, intake item, or maintenance request"
 
 Use this skill with:
 
-- [../../repo-operating-model.md](../../repo-operating-model.md)
-- [../../scaffold/README.md](../../scaffold/README.md)
+- [../../scaffold/REPO.md](../../scaffold/REPO.md)
 
 ## What This Skill Produces
 

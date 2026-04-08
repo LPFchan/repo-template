@@ -19,8 +19,7 @@ repo-template is a framework for running ambitious projects without losing coher
 
 | Surface | Role |
 | --- | --- |
-| [repo-operating-model.md](repo-operating-model.md) | The canonical rules layer. |
-| [scaffold/README.md](scaffold/README.md) | The ready-to-copy repo skeleton. |
+| [scaffold/REPO.md](scaffold/REPO.md) | The canonical repo contract that ships with adopted repos. |
 | [skills/README.md](skills/README.md) | Optional procedural workflows for environments that support reusable skills. |
 | [recreate-prompt.md](recreate-prompt.md) | The quick-start prompt for rebuilding this system in another repo. |
 
@@ -36,7 +35,7 @@ repo-template is a framework for running ambitious projects without losing coher
 
 - `AGENTS.md`
   - Best as the canonical editable repo-level instructions file for agentic tools.
-  - Keep it thin and point it back to `repo-operating-model.md`.
+  - Keep it thin and point it back to `REPO.md`.
 - `CLAUDE.md`
   - Anthropic Claude Code project memory file.
   - Keep it as a thin shim that points to `AGENTS.md`.
@@ -78,7 +77,7 @@ Use a migration prompt like this when introducing both local hooks and CI to an 
 This repo already uses repo-template. Introduce commit provenance enforcement without losing repo-specific workflow rules.
 
 Reference source:
-- /Users/yeowool/Documents/repo-template/repo-operating-model.md
+- /Users/yeowool/Documents/repo-template/scaffold/REPO.md
 - /Users/yeowool/Documents/repo-template/scaffold/AGENTS.md
 - /Users/yeowool/Documents/repo-template/scaffold/CLAUDE.md
 - /Users/yeowool/Documents/repo-template/.githooks/commit-msg

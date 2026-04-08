@@ -14,7 +14,7 @@ What lives here:
   - Companion workflow for the optional upstream-review module inside `scaffold/`.
 
 Keep skills procedural.
-Do not duplicate the canonical rules from `repo-operating-model.md` inside them.
+Do not duplicate the canonical rules from `scaffold/REPO.md` inside them.
 
 Use `SKILL.md` for:
 

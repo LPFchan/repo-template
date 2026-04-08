@@ -5,7 +5,7 @@ Create a repo-native system that keeps truth, status, plans, research, decisions
 
 What to build:
 
-1. One canonical `repo-operating-model.md` document that acts as the rules layer.
+1. One canonical `REPO.md` document inside `scaffold/` that acts as the rules layer for adopted repos.
 2. One ready-to-copy `scaffold/` directory containing:
    - optional thin `AGENTS.md` and `CLAUDE.md` compatibility files for tools that look for repo-root instructions
    - `SPEC.md`
@@ -75,7 +75,7 @@ Structure requirements:
 Implementation steps:
 
 1. Inspect the target repo and identify where process docs should live.
-2. Create `repo-operating-model.md`.
+2. Create `scaffold/REPO.md`.
 3. Create `scaffold/` with the canonical repo surfaces.
 4. Add `upstream-intake/` inside the scaffold when the repo needs recurring upstream review.
 5. Add `skills/` only if the environment supports them.

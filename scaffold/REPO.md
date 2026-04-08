@@ -1,6 +1,6 @@
 # Repo Operating Model
 
-This document is the instruction layer for repo-template.
+This document is the canonical repo contract for repo-template-style repos.
 
 ## Purpose
 
@@ -13,7 +13,7 @@ The goal is simple:
 - keep provenance explicit
 - let the orchestrator route work without inventing new storage rules each time
 
-The ready-to-copy skeleton lives in `scaffold/`.
+This file is part of the ready-to-copy scaffold for adopted repos.
 
 ## Core Surfaces
 
@@ -37,14 +37,14 @@ Some coding agents look for repo-root instruction files such as `AGENTS.md` or `
 When a repo using this model includes them:
 
 - they should act as entrypoints into the canonical rules, not competing policy documents
-- they should stay short enough that they do not drift from `repo-operating-model.md`
+- they should stay short enough that they do not drift from `REPO.md`
 - `AGENTS.md` should be the main editable agent-instructions file when both files exist
 - `CLAUDE.md` should be a thin shim that points to `AGENTS.md` when the tool supports it
 - `SKILL.md` stays separate because it defines a bounded reusable procedure, not repo-wide policy
 
 Recommended split:
 
-- `repo-operating-model.md`
+- `REPO.md`
   - canonical rules
 - `AGENTS.md`
   - canonical editable agent-instructions file
