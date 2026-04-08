@@ -49,7 +49,8 @@ Keep `upstream-intake/` if the repo is a fork, tracks upstream closely, or wants
 `AGENTS.md` and `CLAUDE.md` are compatibility surfaces for agentic tools that look for repo-root instructions.
 
 - Keep both thin.
-- Point them back to `repo-operating-model.md`.
+- Make `AGENTS.md` the main editable instructions file.
+- Make `CLAUDE.md` a shim that points to `AGENTS.md`.
 - Do not fork the policy layer into multiple files.
 - Keep reusable workflows in `skills/<name>/SKILL.md`, not in these entrypoint files.
 

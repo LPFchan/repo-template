@@ -2,7 +2,8 @@
 
 This repo uses repo-template.
 
-Treat `AGENTS.md` as a compatibility entrypoint for tools that look for repo-level agent instructions. The canonical rules still live in `repo-operating-model.md`.
+Treat `AGENTS.md` as the canonical editable agent-instructions file for the repo.
+It should enforce repo behavior while deferring canonical policy details to `repo-operating-model.md`.
 
 ## Read First
 

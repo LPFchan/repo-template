@@ -67,6 +67,7 @@ Structure requirements:
 - keep the operating rules in one canonical document
 - make `scaffold/` the copyable skeleton, not a loose library of snippets
 - allow thin compatibility entrypoints such as `AGENTS.md` or `CLAUDE.md`, but keep them subordinate to the canonical rules
+- when both exist, make `AGENTS.md` the editable instructions file and `CLAUDE.md` the shim that points to it
 - close the shape gap for durable artifact directories by making each local `README.md` define both the rules and a canonical example shape when practical
 - keep optional procedural skills outside the scaffold
 - avoid separate instruction and launcher-prompt layers unless the target environment truly needs them

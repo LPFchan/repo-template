@@ -35,11 +35,11 @@ repo-template is a framework for running ambitious projects without losing coher
 ## Instruction File Mapping
 
 - `AGENTS.md`
-  - Best as a repo-level entrypoint for agentic tools that look for shared instructions.
+  - Best as the canonical editable repo-level instructions file for agentic tools.
   - Keep it thin and point it back to `repo-operating-model.md`.
 - `CLAUDE.md`
   - Anthropic Claude Code project memory file.
-  - Keep it thin and, when practical, import or reference `repo-operating-model.md` instead of restating policy.
+  - Keep it as a thin shim that points to `AGENTS.md`.
 - `SKILL.md`
   - A reusable workflow file that lives under `skills/<name>/SKILL.md`.
   - Use it for bounded procedures, outputs, and escalation triggers, not repo-wide truth.
@@ -95,6 +95,7 @@ Goals:
 Rules:
 - Preserve existing repo-specific instructions, commands, and workflow notes.
 - Keep `AGENTS.md` and `CLAUDE.md` thin, but make them explicitly require compliant commit messages when hooks or CI are enabled.
+- Treat `AGENTS.md` as the editable source of agent rules and `CLAUDE.md` as a pointer shim where possible.
 - If the repo already has hooks or CI, merge with them instead of replacing them blindly.
 - Reuse repo-template's commit checks unless the target repo already has a stronger equivalent.
 - Treat bootstrap or migration exceptions as explicit exceptions only.

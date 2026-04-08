@@ -38,7 +38,8 @@ When a repo using this model includes them:
 
 - they should act as entrypoints into the canonical rules, not competing policy documents
 - they should stay short enough that they do not drift from `repo-operating-model.md`
-- `CLAUDE.md` may import or reference `repo-operating-model.md` when the tool supports it
+- `AGENTS.md` should be the main editable agent-instructions file when both files exist
+- `CLAUDE.md` should be a thin shim that points to `AGENTS.md` when the tool supports it
 - `SKILL.md` stays separate because it defines a bounded reusable procedure, not repo-wide policy
 
 Recommended split:
@@ -46,9 +47,9 @@ Recommended split:
 - `repo-operating-model.md`
   - canonical rules
 - `AGENTS.md`
-  - tool-facing summary plus read order
+  - canonical editable agent-instructions file
 - `CLAUDE.md`
-  - Claude Code memory shim into the same rules
+  - Claude Code shim that points to `AGENTS.md`
 - `skills/<name>/SKILL.md`
   - procedure for one repeatable workflow
 
