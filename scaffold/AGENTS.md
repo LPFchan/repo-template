@@ -15,7 +15,7 @@ It should enforce repo behavior while deferring canonical policy details to `REP
 
 If the repo includes reusable workflows, then also read `skills/README.md` and the relevant `skills/<name>/SKILL.md`.
 
-When writing into an artifact directory, read that directory's `README.md` first. If it includes a default shape or canonical example, follow it.
+When writing into an artifact directory, read that directory's `README.md` first. If it includes a prescriptive shape, follow it. If it is intentionally lightweight, keep the output lightweight too.
 
 ## Operating Rules
 
@@ -37,7 +37,7 @@ When you write or update repo artifacts, adherence to the repo's ruleset is requ
 - Do not invent a new document shape when the repo already provides a canonical surface, directory `README.md`, or explicit template.
 - Do not collapse truth, plans, decisions, research, inbox intake, and worklogs into one mixed artifact.
 - Do not write chatty transcripts where the repo expects normalized records.
-- If an artifact would need to diverge from the established shape, make the smallest justified deviation and keep the core fields and section order intact.
+- If an artifact guide is intentionally lightweight, do not over-structure the document just to make it look uniform.
 - If the repo guidance and the requested output appear to conflict, follow the repo rules and explain the tension in the artifact or handoff.
 - Do not bypass commit provenance checks by omitting required trailers unless the commit is an explicit bootstrap or migration exception.
 

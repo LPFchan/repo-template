@@ -51,7 +51,7 @@ Use this skill with:
    - Include `Opened: YYYY-MM-DD HH-mm-ss KST`
    - Include `Recorded by agent: <agent-id>`
    - Before drafting, read the destination directory's `README.md` and any explicit template.
-   - Match the local default shape or canonical example unless the task has a clear reason to differ.
+   - Match the local guide when it is prescriptive, and stay lightweight when the guide is intentionally minimal.
 
 5. Preserve the separation rules.
    - Do not write speculation straight into `PLANS.md`.

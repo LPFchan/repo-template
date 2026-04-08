@@ -49,6 +49,7 @@ repo-template now treats artifact shape as part of the contract, not just nice-t
 
 - The local directory `README.md` should explain what belongs there and show the preferred finished artifact shape.
 - Agents should read that guide before creating new `RSH-*`, `DEC-*`, `LOG-*`, or upstream intake artifacts.
+- Not every surface needs the same amount of structure. `SPEC.md` and research memos may stay intentionally lightweight when the repo needs flexibility more than uniformity.
 
 ## Commit Checks
 
