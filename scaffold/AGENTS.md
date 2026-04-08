@@ -25,6 +25,8 @@ When writing into an artifact directory, read that directory's `README.md` first
 - If the repo tracks upstream on a cadence, use `upstream-intake/` instead of inventing a parallel workflow.
 - When creating artifacts or commits, follow the stable-ID and provenance rules in `repo-operating-model.md`.
 - Prefer the local `README.md` shape over ad hoc formatting when it defines one.
+- If commit hooks are enabled, your commit message must satisfy the repo provenance check before the commit is allowed.
+- If CI commit checks are enabled, your pushed commits must satisfy the same provenance rules remotely.
 
 ## Enforcement
 
@@ -35,6 +37,7 @@ When you write or update repo artifacts, adherence to the repo's ruleset is requ
 - Do not write chatty transcripts where the repo expects normalized records.
 - If an artifact would need to diverge from the established shape, make the smallest justified deviation and keep the core fields and section order intact.
 - If the repo guidance and the requested output appear to conflict, follow the repo rules and explain the tension in the artifact or handoff.
+- Do not bypass commit provenance checks by omitting required trailers unless the commit is an explicit bootstrap or migration exception.
 
 ## Skills
 

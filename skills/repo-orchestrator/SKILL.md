@@ -70,6 +70,7 @@ Use this skill with:
    - `agent: <agent-id>`
    - `role: orchestrator|worker|subagent|operator`
    - `artifacts: <artifact-id>[, <artifact-id>...]`
+   - If commit hooks are enabled, make the commit message pass the local validator before retrying.
 
 8. If the task is recurring upstream maintenance, use `upstream-intake/` instead of inventing a parallel workflow.
 

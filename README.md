@@ -12,6 +12,8 @@ repo-template is a framework for running ambitious projects without losing coher
 | Provenance | Stable IDs and commit trailers keep artifacts, agents, and commits connected over time. |
 | Optional upstream maintenance | `upstream-intake/` gives upstream-tracking projects a disciplined review and escalation system. |
 | Agent compatibility | Optional `AGENTS.md` and `CLAUDE.md` provide tool-specific entrypoints that defer to the same canonical repo rules. |
+| Commit enforcement | Optional git hooks can reject commits that miss required provenance trailers. |
+| Remote enforcement | Optional CI can re-check commit provenance on push and pull request. |
 
 ## This Repo Includes
 
@@ -48,6 +50,63 @@ repo-template now treats artifact shape as part of the contract, not just nice-t
 
 - The local directory `README.md` should explain what belongs there and show the preferred finished artifact shape.
 - Agents should read that guide before creating new `RSH-*`, `DEC-*`, `LOG-*`, or upstream intake artifacts.
+
+## Commit Checks
+
+repo-template can also enforce commit provenance at commit time.
+
+- `.githooks/commit-msg` runs a tracked commit-message check.
+- `scripts/check-commit-standards.sh` validates the required trailers.
+- `scripts/check-commit-range.sh` validates every commit in a git range.
+- `scripts/install-hooks.sh` enables the tracked hooks for the local clone.
+- `.github/workflows/commit-standards.yml` re-checks commit provenance in CI on push and pull request.
+
+Normal commits should include:
+
+- `project: <project-id>`
+- `agent: <agent-id>`
+- `role: orchestrator|worker|subagent|operator`
+- `artifacts: <artifact-id>[, <artifact-id>...]`
+
+Bootstrap or migration exceptions must be explicit in the commit message.
+
+## Prompt For Adopted Repos
+
+Use a migration prompt like this when introducing both local hooks and CI to an already-adopted repo:
+
+```text
+This repo already uses repo-template. Introduce commit provenance enforcement without losing repo-specific workflow rules.
+
+Reference source:
+- /Users/yeowool/Documents/repo-template/repo-operating-model.md
+- /Users/yeowool/Documents/repo-template/scaffold/AGENTS.md
+- /Users/yeowool/Documents/repo-template/scaffold/CLAUDE.md
+- /Users/yeowool/Documents/repo-template/.githooks/commit-msg
+- /Users/yeowool/Documents/repo-template/scripts/check-commit-standards.sh
+- /Users/yeowool/Documents/repo-template/scripts/check-commit-range.sh
+- /Users/yeowool/Documents/repo-template/scripts/install-hooks.sh
+- /Users/yeowool/Documents/repo-template/.github/workflows/commit-standards.yml
+
+Goals:
+1. Add local git-hook enforcement for commit provenance.
+2. Add CI enforcement so pushed commits and PR commits are checked remotely too.
+3. Merge these rules into the repo's existing `AGENTS.md` and `CLAUDE.md` if they already exist.
+
+Rules:
+- Preserve existing repo-specific instructions, commands, and workflow notes.
+- Keep `AGENTS.md` and `CLAUDE.md` thin, but make them explicitly require compliant commit messages when hooks or CI are enabled.
+- If the repo already has hooks or CI, merge with them instead of replacing them blindly.
+- Reuse repo-template's commit checks unless the target repo already has a stronger equivalent.
+- Treat bootstrap or migration exceptions as explicit exceptions only.
+- Do not weaken existing enforcement during the merge.
+
+Execution:
+- Inspect existing local hooks, CI workflows, `AGENTS.md`, and `CLAUDE.md`.
+- Add or merge the local `commit-msg` hook path and validator scripts.
+- Add or merge the CI workflow so commit provenance is checked on push and pull request.
+- Update agent instruction files so they tell agents to satisfy the checks rather than bypass them.
+- Summarize any intentional divergences from repo-template.
+```
 
 ## Provenance Rules
 

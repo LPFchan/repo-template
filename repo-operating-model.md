@@ -217,6 +217,24 @@ Rules:
 - Artifact-less commits should be treated as bootstrap or migration exceptions only.
 - The commit side and the repo-artifact side should reinforce the same provenance graph.
 
+## Commit-Time Enforcement
+
+If the repo enables commit hooks, every attempted commit should be checked against these provenance rules.
+
+Recommended minimum enforcement:
+
+- reject commits that do not include `project:`, `agent:`, `role:`, and `artifacts:`
+- reject roles outside `orchestrator|worker|subagent|operator`
+- reject empty or malformed artifact ID lists
+- allow explicit bootstrap or migration exceptions
+
+The goal is not perfect policy automation. The goal is to stop obviously non-compliant commits before they land.
+
+Best practice is to use both:
+
+- local git hooks for fast feedback before the commit is created
+- CI for remote re-validation on push or pull request
+
 ## Off-Git Provenance
 
 Repo artifacts stay lightweight on purpose.

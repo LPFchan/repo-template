@@ -100,3 +100,12 @@ Once the target repo adopts this system, every commit should carry:
 - `agent: <agent-id>`
 - `role: orchestrator|worker|subagent|operator`
 - `artifacts: <artifact-id>[, <artifact-id>...]`
+
+## Hooking This Up
+
+If you want commit-time enforcement in an adopted repo:
+
+1. Copy `.githooks/commit-msg` and `scripts/check-commit-standards.sh` into the target repo.
+2. Copy `scripts/check-commit-range.sh` and `.github/workflows/commit-standards.yml` if you also want CI enforcement.
+3. Run `scripts/install-hooks.sh` once in that repo.
+4. Make sure agents know that bootstrap or migration exceptions must be explicit.

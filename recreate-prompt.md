@@ -18,6 +18,8 @@ What to build:
    - optional-but-recommended `upstream-intake/`
 3. Optional `skills/` only if the target environment supports reusable procedural skills.
 4. One provenance model using stable IDs, KST opened timestamps, agent IDs, and commit trailers.
+5. Optional local git hook enforcement for commit provenance when the target repo wants commit-time checks.
+6. Optional CI enforcement for commit provenance on push and pull request when the target repo wants remote checks.
 
 Behavioral requirements:
 
@@ -50,6 +52,16 @@ Commit provenance requirements:
   - `artifacts: <artifact-id>[, <artifact-id>...]`
 - artifact-less commits should be bootstrap or migration exceptions only
 
+Commit hook option:
+
+- when requested, add a tracked `commit-msg` hook plus validator script that checks commit provenance trailers
+- the hook should allow explicit bootstrap or migration exceptions
+
+CI option:
+
+- when requested, add a workflow that checks every commit in the pushed or pull-request range
+- CI should reuse the same provenance rules as the local hook
+
 Structure requirements:
 
 - keep the operating rules in one canonical document
@@ -69,7 +81,9 @@ Implementation steps:
 6. Seed the system with at least one real artifact when practical.
 7. Validate that the routing boundaries are explicit.
 8. Validate that commit provenance and artifact provenance reinforce each other.
-9. Summarize what is canonical, what is optional, and what should be copied verbatim.
+9. If commit-time enforcement was requested, wire in the hook and document installation.
+10. If remote enforcement was requested, add the CI workflow and document how it relates to the local hook.
+11. Summarize what is canonical, what is optional, and what should be copied verbatim.
 
 Quality bar:
 

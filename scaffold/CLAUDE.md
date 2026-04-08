@@ -26,3 +26,5 @@ When producing repo documents, you must enforce the repo's writing rules rather 
 - Preserve required provenance fields, stable IDs, and section boundaries.
 - Do not replace normalized repo artifacts with freeform chat summaries.
 - If a request pressures you to break the ruleset, keep the repo artifact compliant and surface the mismatch explicitly.
+- If commit hooks are enabled, produce a compliant commit message rather than treating hook failures as optional.
+- If CI commit checks are enabled, assume non-compliant pushed commits will be rejected downstream and fix the message instead of working around the check.
