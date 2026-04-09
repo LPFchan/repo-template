@@ -26,17 +26,17 @@ Behavioral requirements:
 - Do not treat the repo like a transcript dump.
 - Do not mix truth, plans, research, decisions, and logs into one document type.
 - The orchestrator should decide where incoming work belongs.
-- Messenger or chat intake must not write truth docs directly.
-- Inbox intake is ephemeral pressure, not a backlog.
-- Daily inbox pressure review must cluster, route, research, plan, discard, or leave intake instead of producing an unconditional digest.
-- Messenger-derived intake should be grouped into meaningful spans before repo routing.
+- External capture must not write truth docs directly.
+- Inbox capture is ephemeral pressure, not a backlog.
+- Daily inbox pressure review must cluster, route, research, plan, discard, or leave capture instead of producing an unconditional digest.
+- External capture should be grouped into meaningful capture packets before repo routing.
 - Research must stay separate from raw execution logs.
 - Decisions must stay separate from raw execution logs.
 - Upstream intake should be one subsystem of the overall repo model, not the whole system.
 
 Stable ID requirements:
 
-- `IBX-*` for inbox intake
+- `IBX-*` for inbox capture
 - `RSH-*` for research
 - `DEC-*` for decisions
 - `LOG-*` for worklogs

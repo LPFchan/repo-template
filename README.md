@@ -7,9 +7,9 @@ repo-template is a framework for running ambitious projects without losing coher
 | Piece | What it does |
 | --- | --- |
 | Canonical truth | `SPEC.md`, `STATUS.md`, and `PLANS.md` keep the project's source of truth, current reality, and accepted future direction distinct. |
-| Intake and routing | `INBOX.md` and the orchestrator make sure new work lands in the right place instead of disappearing into chat. |
-| Inbox pressure review | A daily IBX review can cluster, discard, hold, research, route, or promote intake without turning every idea into a future-direction digest. |
-| Sparse promotion | Exploratory shaping can stay in chat or intake; durable artifacts receive concise outcomes only when that layer has a distinct job. |
+| Capture and routing | `INBOX.md` and the orchestrator make sure new capture lands in the right place instead of disappearing into external tools. |
+| Inbox pressure review | A daily IBX review can cluster, discard, hold, research, route, or promote capture without turning every idea into a future-direction digest. |
+| Sparse promotion | Exploratory shaping can stay in external capture or inbox; durable artifacts receive concise outcomes only when that layer has a distinct job. |
 | Durable memory | `research/`, `records/decisions/`, and `records/agent-worklogs/` preserve what was learned, what was decided, and what actually happened. |
 | Provenance | Stable IDs and commit trailers keep artifacts, agents, and commits connected over time. |
 | Optional upstream maintenance | `upstream-intake/` gives upstream-tracking projects a disciplined review and escalation system. |
@@ -56,13 +56,13 @@ repo-template now treats artifact shape as part of the contract, not just nice-t
 ## Inbox Pressure
 
 `INBOX.md` is an ephemeral pressure valve.
-Operators may capture low-confidence ideas, messenger fragments, voice-note summaries, links, pivots, and "maybe later" thoughts there.
+Operators may capture low-confidence ideas, external-tool fragments, transcripts, dictated notes, links, pivots, and "maybe later" thoughts there.
 
 The daily inbox review should protect focus:
 
-- group related intake before deciding what matters
+- group related capture before deciding what matters
 - identify stale, noisy, duplicate, and low-signal clusters
-- route, research, plan, discard, or leave meaningful spans
+- route, research, plan, discard, or leave meaningful capture packets
 - promote only survived triage
 - report counts or clusters of noisy/held/discarded items instead of summarizing every fragment
 
@@ -70,7 +70,7 @@ The daily inbox review should protect focus:
 
 repo-template is a refinery, not a mirror maze.
 
-- Keep raw shaping in chat, messenger, generic notes, off-Git capture, intake spans, or `INBOX.md` while the thought is still forming.
+- Keep raw shaping in external capture, generic notes, off-Git capture packets, or `INBOX.md` while the thought is still forming.
 - Keep research in `research/` unless a meaningful choice has actually been accepted.
 - Write `DEC-*` only for a real accepted product, architecture, workflow, trust, upstream, or repo-operating choice.
 - Update `SPEC.md`, `STATUS.md`, and `PLANS.md` with concise outcomes, not copied debate.
@@ -146,7 +146,7 @@ Stable artifact types use these prefixes:
 
 | Prefix | Artifact type |
 | --- | --- |
-| `IBX-*` | Inbox intake |
+| `IBX-*` | Inbox capture |
 | `RSH-*` | Research memos |
 | `DEC-*` | Decisions |
 | `LOG-*` | Worklogs |

@@ -1,7 +1,7 @@
 ---
 name: daily-inbox-pressure-review
-description: "Run a focus-protecting daily review of INBOX.md and messenger-derived intake spans."
-argument-hint: "Date, inbox range, messenger span, or triage focus"
+description: "Run a focus-protecting daily review of INBOX.md and external capture packets."
+argument-hint: "Date, inbox range, capture packet, external source, or triage focus"
 ---
 
 # Daily Inbox Pressure Review
@@ -16,29 +16,29 @@ Use it when the operator or orchestrator wants a daily IBX review.
 ## What This Skill Produces
 
 - reduced inbox pressure
-- grouped intake clusters
+- grouped capture clusters
 - explicit route/research/plan/discard/leave recommendations
 - promotion of survived triage only
 - optional concise operator questions when routing is blocked
 
-It should not produce a giant digest of every inbox idea.
+It should not produce a giant digest of every captured idea.
 
 ## Procedure
 
-1. Gather active intake.
+1. Gather active capture.
    - Read `INBOX.md`.
-   - Include relevant messenger-derived intake spans when available.
-   - Treat raw messenger/chat messages as immutable Off-Git events, not as repo artifacts.
+   - Include relevant external capture packets when available.
+   - Treat raw external source events as immutable Off-Git events, not as repo artifacts.
 
-2. Build meaningful spans.
-   - Group related raw events and `IBX-*` entries.
+2. Build meaningful capture packets.
+   - Group related raw source events and `IBX-*` entries.
    - Split unrelated ideas that were captured together.
    - Merge near-duplicates.
    - Keep stable `IBX-*` provenance when an inbox line is later deleted.
 
 3. Protect focus.
    - Identify stale, duplicate, low-confidence, noisy, or "maybe later" clusters.
-   - Report noisy/held/discarded intake by count or cluster when details would be distracting.
+   - Report noisy/held/discarded capture by count or cluster when details would be distracting.
    - Do not create a "100 future directions" summary.
 
 4. Triage each meaningful cluster.
@@ -52,7 +52,7 @@ It should not produce a giant digest of every inbox idea.
    - Do not update `SPEC.md`, `STATUS.md`, `PLANS.md`, `research/`, or `records/decisions/` directly from raw inbox.
    - Route through the orchestrator or operator-approved decision.
    - Copy short summaries and provenance IDs into routed artifacts.
-   - Do not rely on raw chat staying visible.
+   - Do not rely on raw external source staying visible.
 
 6. Clean the inbox.
    - Purge entries reflected elsewhere.

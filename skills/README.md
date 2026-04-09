@@ -9,9 +9,9 @@ Each reusable workflow should live at `skills/<name>/SKILL.md`.
 What lives here:
 
 - `repo-orchestrator/`
-  - Generic routing workflow for truth, status, plans, research, decisions, worklogs, and inbox intake.
+  - Generic routing workflow for truth, status, plans, research, decisions, worklogs, and inbox capture.
 - `daily-inbox-pressure-review/`
-  - Focus-protecting daily triage for `IBX-*` intake and messenger-derived spans.
+  - Focus-protecting daily triage for `IBX-*` capture and capture packets.
 - `upstream-intake/`
   - Companion workflow for the optional upstream-review module inside `scaffold/`.
 

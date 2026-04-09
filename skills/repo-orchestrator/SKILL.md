@@ -1,7 +1,7 @@
 ---
 name: repo-orchestrator
 description: "Route work into the correct artifact layer in a repo that uses repo-template."
-argument-hint: "Task, intake item, or maintenance request"
+argument-hint: "Task, capture item, or maintenance request"
 ---
 
 # Repo Orchestrator
@@ -20,7 +20,7 @@ Use this skill with:
 ## Procedure
 
 1. Classify the work in routing order.
-   - Is this untriaged intake?
+   - Is this untriaged capture?
    - Is this recurring upstream review?
    - Is this durable truth?
    - Is this current operational reality?
@@ -64,7 +64,7 @@ Use this skill with:
    - Example: `DEC-*` plus `PLANS.md`
    - Example: `LOG-*` plus `STATUS.md`
    - Touch multiple layers only when each touched layer has a distinct job.
-   - Do not mirror the same evolving conversation into every artifact type.
+   - Do not mirror the same evolving thought into every artifact type.
 
 7. If Git commits are created, add commit trailers.
    - `project: <project-id>`
@@ -76,7 +76,7 @@ Use this skill with:
 
 8. If the task is recurring upstream maintenance, use `upstream-intake/` instead of inventing a parallel workflow.
 
-9. If the task is daily inbox pressure review, cluster and triage intake before routing it.
+9. If the task is daily inbox pressure review, cluster and triage capture before routing it.
    - Do not summarize every inbox item by default.
    - Promote only survived triage.
    - Leave low-signal ideas in held/discarded counts or clusters instead of expanding them into plans.
@@ -97,4 +97,4 @@ Escalate instead of guessing when the work:
 - sparse promotion
 - clear provenance
 - clean separation of layers
-- reusable artifacts instead of chat-only outcomes
+- reusable artifacts instead of external-tool-only outcomes

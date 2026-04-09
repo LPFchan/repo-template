@@ -1,29 +1,29 @@
 # <Project Name> Inbox
 
-This file is an ephemeral scratch disk for intake waiting to be triaged.
+This file is an ephemeral scratch disk for capture waiting to be triaged.
 
 Rules:
 
-- Keep it easy to append to from messenger, operator notes, or agent capture.
-- Use it as a pressure valve for untriaged intake, not as a backlog or brainstorm graveyard.
-- Group related raw messenger/chat events into one meaningful intake entry when possible.
-- Triage meaningful spans or clusters, not every raw message and not the whole messenger history.
-- During daily review, route, research, plan, discard, or leave intake; do not produce a giant project digest.
+- Keep it easy to append to from external capture, operator notes, or agent capture.
+- Use it as a pressure valve for untriaged capture, not as a backlog or brainstorm graveyard.
+- Group related raw source events into one meaningful inbox entry when possible.
+- Triage meaningful capture packets or clusters, not every raw source event and not an entire external history.
+- During daily review, route, research, plan, discard, or leave capture; do not produce a giant project digest.
 - It is okay to report counts or clusters of held, noisy, stale, or discarded items without summarizing every item.
 - Do not update truth docs directly from inbox. Route through the orchestrator or an operator-approved decision.
 - Remove entries once they are reflected into durable repo artifacts.
 - Keep the stable `IBX-*` id even after the inbox entry itself is later deleted.
 - Do not treat this file as durable truth.
 
-## Active Intake
+## Active Capture
 
 ### IBX-YYYYMMDD-NNN
 
 - Opened: `YYYY-MM-DD HH-mm-ss KST`
 - Recorded by agent:
 - Source:
-- Source event ids:
-- Intake span:
+- Source / capture ids:
+- Capture packet:
 - Received:
 - Summary:
 - Confidence: `low` | `medium` | `high`
@@ -38,8 +38,8 @@ Rules:
 - Opened:
 - Recorded by agent:
 - Source:
-- Source event ids:
-- Intake span:
+- Source / capture ids:
+- Capture packet:
 - Received:
 - Summary:
 - Confidence:
