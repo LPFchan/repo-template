@@ -15,11 +15,12 @@ What to build:
    - `research/`
    - `records/decisions/`
    - `records/agent-worklogs/`
-   - optional-but-recommended `upstream-intake/`
-3. Optional `skills/` only if the target environment supports reusable procedural skills.
-4. One provenance model using stable IDs, KST opened timestamps, agent IDs, and commit trailers.
-5. Optional local git hook enforcement for commit provenance when the target repo wants commit-time checks.
-6. Optional CI enforcement for commit provenance on push and pull request when the target repo wants remote checks.
+   - required baseline `skills/`
+   - optional `upstream-intake/`
+   - optional `skills/upstream-intake/` companion workflow when `upstream-intake/` is enabled
+3. One provenance model using stable IDs, KST opened timestamps, agent IDs, and commit trailers.
+4. Optional local git hook enforcement for commit provenance when the target repo wants commit-time checks.
+5. Optional CI enforcement for commit provenance on push and pull request when the target repo wants remote checks.
 
 Behavioral requirements:
 
@@ -74,7 +75,8 @@ Structure requirements:
 - allow thin compatibility entrypoints such as `AGENTS.md` or `CLAUDE.md`, but keep them subordinate to the canonical rules
 - when both exist, make `AGENTS.md` the editable instructions file and `CLAUDE.md` the shim that points to it
 - close the shape gap for durable artifact directories by making each local `README.md` define both the rules and a canonical example shape when practical
-- keep optional procedural skills outside the scaffold
+- keep baseline procedural skills inside the scaffold so they deploy as repo-root `skills/`
+- keep upstream review optional; omit both `upstream-intake/` and `skills/upstream-intake/` when the repo does not track an upstream
 - avoid separate instruction and launcher-prompt layers unless the target environment truly needs them
 - do not add a second backlog artifact for inbox review
 
@@ -82,9 +84,9 @@ Implementation steps:
 
 1. Inspect the target repo and identify where process docs should live.
 2. Create `scaffold/REPO.md`.
-3. Create `scaffold/` with the canonical repo surfaces.
-4. Add `upstream-intake/` inside the scaffold when the repo needs recurring upstream review.
-5. Add `skills/` only if the environment supports them.
+3. Create `scaffold/` with the canonical repo surfaces, including baseline `skills/`.
+4. Add `upstream-intake/` and its companion `skills/upstream-intake/` skill inside the scaffold only when the repo needs recurring upstream review.
+5. Validate that the scaffold contents are meant to copy to the target repo root. For example, `scaffold/skills/` in the template becomes root `skills/` after adoption.
 6. Seed the system with at least one real artifact when practical.
 7. Validate that the routing boundaries are explicit.
 8. Validate that commit provenance and artifact provenance reinforce each other.

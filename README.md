@@ -12,7 +12,8 @@ repo-template is a framework for running ambitious projects without losing coher
 | Sparse promotion | Exploratory shaping can stay in external capture or inbox; durable artifacts receive concise outcomes only when that layer has a distinct job. |
 | Durable memory | `research/`, `records/decisions/`, and `records/agent-worklogs/` preserve what was learned, what was decided, and what actually happened. |
 | Provenance | Stable IDs and commit trailers keep artifacts, agents, and commits connected over time. |
-| Optional upstream maintenance | `upstream-intake/` gives upstream-tracking projects a disciplined review and escalation system. |
+| Procedural skills | `skills/` ships inside the scaffold so repeatable agent workflows are documented in the adopted repo. |
+| Optional upstream maintenance | `upstream-intake/` gives upstream-tracking projects a disciplined review and escalation system. Omit it when the repo is not tracking an upstream. |
 | Agent compatibility | Optional `AGENTS.md` and `CLAUDE.md` provide tool-specific entrypoints that defer to the same canonical repo rules. |
 | Commit enforcement | Optional git hooks can reject commits that miss required provenance trailers. |
 | Remote enforcement | Optional CI can re-check commit provenance on push and pull request. |
@@ -22,16 +23,16 @@ repo-template is a framework for running ambitious projects without losing coher
 | Surface | Role |
 | --- | --- |
 | [scaffold/REPO.md](scaffold/REPO.md) | The canonical repo contract that ships with adopted repos. |
-| [skills/README.md](skills/README.md) | Optional procedural workflows for environments that support reusable skills. |
+| [scaffold/skills/README.md](scaffold/skills/README.md) | Required procedural workflows that ship with adopted repos as root `skills/`. |
 | [recreate-prompt.md](recreate-prompt.md) | The quick-start prompt for rebuilding this system in another repo. |
 
 ## Getting Started
 
 1. As the operator, give your agent [recreate-prompt.md](recreate-prompt.md) and point it at the target repo.
-2. Tell the agent whether `upstream-intake/` should stay active, stay dormant, or be omitted for that repo.
-3. Have the agent instantiate the [scaffold/](scaffold/) around the real project, including `project-id`, `SPEC.md`, `STATUS.md`, `PLANS.md`, and `INBOX.md`.
-4. Review the first seeded artifacts together, especially the initial `IBX-*`, `LOG-*`, and `DEC-*` items, and correct any routing mistakes early.
-5. If your environment supports reusable workflows, then layer in [skills/README.md](skills/README.md). Otherwise stop at the scaffold.
+2. Tell the agent whether the optional `upstream-intake/` module should stay active, stay dormant, or be omitted for that repo. If it is omitted, omit its companion `skills/upstream-intake/` skill too.
+3. Have the agent copy the contents of [scaffold/](scaffold/) into the target repo root, including `REPO.md`, `SPEC.md`, `STATUS.md`, `PLANS.md`, `INBOX.md`, and root `skills/`.
+4. Keep the required baseline skills: `skills/repo-orchestrator/` and `skills/daily-inbox-pressure-review/`.
+5. Review the first seeded artifacts together, especially the initial `IBX-*`, `LOG-*`, and `DEC-*` items, and correct any routing mistakes early.
 
 ## Instruction File Mapping
 

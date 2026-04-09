@@ -1,22 +1,27 @@
 # Skills
 
-This directory is optional.
+This directory is part of the repo-template scaffold.
 
-Use it only when the target environment supports reusable procedural skills or workflows.
+Use it as repo-native procedural documentation.
+Agents should read the relevant workflow even when their runtime does not auto-load skills.
 
 Each reusable workflow should live at `skills/<name>/SKILL.md`.
 
-What lives here:
+Required baseline skills:
 
 - `repo-orchestrator/`
   - Generic routing workflow for truth, status, plans, research, decisions, worklogs, and inbox capture.
 - `daily-inbox-pressure-review/`
   - Focus-protecting daily triage for `IBX-*` capture and capture packets.
+
+Conditional skills:
+
 - `upstream-intake/`
-  - Companion workflow for the optional upstream-review module inside `scaffold/`.
+  - Companion workflow for the optional upstream-review module.
+  - Include it when the adopted repo enables `upstream-intake/`; omit it when the repo does not track an upstream.
 
 Keep skills procedural.
-Do not duplicate the canonical rules from `scaffold/REPO.md` inside them.
+Do not duplicate the canonical rules from `REPO.md` inside them.
 
 Use `SKILL.md` for:
 

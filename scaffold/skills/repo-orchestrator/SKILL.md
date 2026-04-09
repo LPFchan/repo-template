@@ -8,7 +8,7 @@ argument-hint: "Task, capture item, or maintenance request"
 
 Use this skill with:
 
-- [../../scaffold/REPO.md](../../scaffold/REPO.md)
+- [../../REPO.md](../../REPO.md)
 
 ## What This Skill Produces
 
@@ -74,7 +74,7 @@ Use this skill with:
    - If commit hooks are enabled, make the commit message pass the local validator before retrying.
    - Prefer referencing and updating an existing relevant `LOG-*` before creating a new one.
 
-8. If the task is recurring upstream maintenance, use `upstream-intake/` instead of inventing a parallel workflow.
+8. If the task is recurring upstream maintenance and the optional module is enabled, use `upstream-intake/` instead of inventing a parallel workflow.
 
 9. If the task is daily inbox pressure review, cluster and triage capture before routing it.
    - Do not summarize every inbox item by default.

@@ -12,8 +12,9 @@ It should enforce repo behavior while deferring canonical policy details to `REP
 - `STATUS.md`
 - `PLANS.md`
 - `INBOX.md`
+- `skills/README.md`
 
-If the repo includes reusable workflows, then also read `skills/README.md` and the relevant `skills/<name>/SKILL.md`.
+Before running a repeatable repo workflow, read the relevant `skills/<name>/SKILL.md`. Treat skills as repo-native procedures even when the agent runtime does not auto-load them.
 
 When writing into an artifact directory, read that directory's `README.md` first. If it includes a prescriptive shape, follow it. If it is intentionally lightweight, keep the output lightweight too.
 

@@ -8,8 +8,8 @@ argument-hint: "Date, inbox range, capture packet, external source, or triage fo
 
 Use this skill with:
 
-- [../../scaffold/REPO.md](../../scaffold/REPO.md)
-- [../../scaffold/INBOX.md](../../scaffold/INBOX.md)
+- [../../REPO.md](../../REPO.md)
+- [../../INBOX.md](../../INBOX.md)
 
 Use it when the operator or orchestrator wants a daily IBX review.
 

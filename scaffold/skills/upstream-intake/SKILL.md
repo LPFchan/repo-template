@@ -8,10 +8,10 @@ argument-hint: "Upstream release, compare window, or refs to review"
 
 Use this skill with:
 
-- [../../scaffold/upstream-intake/README.md](../../scaffold/upstream-intake/README.md)
-- [../../scaffold/upstream-intake/intake-method.md](../../scaffold/upstream-intake/intake-method.md)
-- [../../scaffold/upstream-intake/weekly-upstream-intake-template.md](../../scaffold/upstream-intake/weekly-upstream-intake-template.md)
-- [../../scaffold/upstream-intake/operator-weekly-brief-template.md](../../scaffold/upstream-intake/operator-weekly-brief-template.md)
+- [../../upstream-intake/README.md](../../upstream-intake/README.md)
+- [../../upstream-intake/intake-method.md](../../upstream-intake/intake-method.md)
+- [../../upstream-intake/weekly-upstream-intake-template.md](../../upstream-intake/weekly-upstream-intake-template.md)
+- [../../upstream-intake/operator-weekly-brief-template.md](../../upstream-intake/operator-weekly-brief-template.md)
 
 Use it when a downstream fork needs a repeatable review of upstream changes.
 
@@ -36,7 +36,7 @@ Use it when a downstream fork needs a repeatable review of upstream changes.
    - Separate product-shaping work from routine bug fixes.
 
 4. Analyze each candidate deeply.
-   - Follow the drill-down and ambiguity rules in [../../scaffold/upstream-intake/intake-method.md](../../scaffold/upstream-intake/intake-method.md).
+   - Follow the drill-down and ambiguity rules in [../../upstream-intake/intake-method.md](../../upstream-intake/intake-method.md).
    - Make sure each candidate covers the exact upstream and local surfaces, the before and after state, the concrete consequence, what is not changing, overlap or collision with local work, tradeoffs, compatibility details, and at least one literal user or operator scenario.
    - If any of this depends on vendor policy, pricing, legal terms, or external product behavior, use internet lookup and prefer official sources.
 
@@ -45,14 +45,14 @@ Use it when a downstream fork needs a repeatable review of upstream changes.
    - If the change is blocked on product direction, public contract risk, or security-vs-compatibility tradeoffs, escalate.
 
 6. Fill the canonical template.
-   - Use [../../scaffold/upstream-intake/weekly-upstream-intake-template.md](../../scaffold/upstream-intake/weekly-upstream-intake-template.md).
-   - Use [../../scaffold/upstream-intake/intake-method.md](../../scaffold/upstream-intake/intake-method.md) to keep the analysis and recommendation shape consistent.
-   - Write the full record under [../../scaffold/upstream-intake/reports/internal-records/README.md](../../scaffold/upstream-intake/reports/internal-records/README.md).
+   - Use [../../upstream-intake/weekly-upstream-intake-template.md](../../upstream-intake/weekly-upstream-intake-template.md).
+   - Use [../../upstream-intake/intake-method.md](../../upstream-intake/intake-method.md) to keep the analysis and recommendation shape consistent.
+   - Write the full record under [../../upstream-intake/reports/internal-records/README.md](../../upstream-intake/reports/internal-records/README.md).
    - Check the destination directory `README.md` first and mirror its canonical example and level of completeness.
 
 7. Produce the operator brief.
-   - Use [../../scaffold/upstream-intake/operator-weekly-brief-template.md](../../scaffold/upstream-intake/operator-weekly-brief-template.md) for the lighter summary.
-   - Store it as a separate artifact under [../../scaffold/upstream-intake/reports/operator-briefs/README.md](../../scaffold/upstream-intake/reports/operator-briefs/README.md).
+   - Use [../../upstream-intake/operator-weekly-brief-template.md](../../upstream-intake/operator-weekly-brief-template.md) for the lighter summary.
+   - Store it as a separate artifact under [../../upstream-intake/reports/operator-briefs/README.md](../../upstream-intake/reports/operator-briefs/README.md).
    - Keep the full reasoning in the internal record; the operator brief is the shorter human-facing translation.
    - Check the destination directory `README.md` first so the final artifact reads like a finished brief, not a field dump.
 

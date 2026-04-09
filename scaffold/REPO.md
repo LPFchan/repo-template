@@ -28,7 +28,8 @@ Every repo using this system should separate these surfaces:
 | `research/` | Curated research memos worth keeping. | append by new file |
 | `records/decisions/` | Durable decision records with rationale. | append-only by new file |
 | `records/agent-worklogs/` | Execution history for runs, agents, and subagents. | append-only |
-| `upstream-intake/` | Optional but recommended upstream review subsystem. | append by cadence |
+| `skills/` | Required procedural workflows for repeatable agent tasks. | edit by skill |
+| `upstream-intake/` | Optional upstream review subsystem for repos that track an upstream. | append by cadence |
 
 ## Agent Compatibility Files
 
@@ -41,6 +42,8 @@ When a repo using this model includes them:
 - `AGENTS.md` should be the main editable agent-instructions file when both files exist
 - `CLAUDE.md` should be a thin shim that points to `AGENTS.md` when the tool supports it
 - `SKILL.md` stays separate because it defines a bounded reusable procedure, not repo-wide policy
+- `skills/` should ship with adopted repos as repo-native procedural documentation, even when the agent runtime does not auto-load skills
+- optional repo subsystems may have optional companion skills
 
 Recommended split:
 
@@ -360,3 +363,7 @@ The Off-Git runtime should answer:
 `scaffold/` is a ready-to-copy repo skeleton, not a loose library of files to cherry-pick casually.
 
 Use it when you want a managed repo to share one canonical layout so humans and agents know exactly where work belongs.
+
+In this template, scaffold files live under `scaffold/`.
+After adoption, the scaffold contents belong at the target repo root.
+For example, `scaffold/skills/repo-orchestrator/SKILL.md` becomes `skills/repo-orchestrator/SKILL.md` in the adopted repo.
