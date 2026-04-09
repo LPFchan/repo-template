@@ -74,6 +74,11 @@ Use this skill with:
 
 8. If the task is recurring upstream maintenance, use `upstream-intake/` instead of inventing a parallel workflow.
 
+9. If the task is daily inbox pressure review, cluster and triage intake before routing it.
+   - Do not summarize every inbox item by default.
+   - Promote only survived triage.
+   - Leave low-signal ideas in held/discarded counts or clusters instead of expanding them into plans.
+
 ## Escalation Triggers
 
 Escalate instead of guessing when the work:

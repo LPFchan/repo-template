@@ -10,6 +10,8 @@ What lives here:
 
 - `repo-orchestrator/`
   - Generic routing workflow for truth, status, plans, research, decisions, worklogs, and inbox intake.
+- `daily-inbox-pressure-review/`
+  - Focus-protecting daily triage for `IBX-*` intake and messenger-derived spans.
 - `upstream-intake/`
   - Companion workflow for the optional upstream-review module inside `scaffold/`.
 

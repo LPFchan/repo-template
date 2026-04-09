@@ -8,6 +8,7 @@ repo-template is a framework for running ambitious projects without losing coher
 | --- | --- |
 | Canonical truth | `SPEC.md`, `STATUS.md`, and `PLANS.md` keep the project's source of truth, current reality, and accepted future direction distinct. |
 | Intake and routing | `INBOX.md` and the orchestrator make sure new work lands in the right place instead of disappearing into chat. |
+| Inbox pressure review | A daily IBX review can cluster, discard, hold, research, route, or promote intake without turning every idea into a future-direction digest. |
 | Durable memory | `research/`, `records/decisions/`, and `records/agent-worklogs/` preserve what was learned, what was decided, and what actually happened. |
 | Provenance | Stable IDs and commit trailers keep artifacts, agents, and commits connected over time. |
 | Optional upstream maintenance | `upstream-intake/` gives upstream-tracking projects a disciplined review and escalation system. |
@@ -50,6 +51,19 @@ repo-template now treats artifact shape as part of the contract, not just nice-t
 - The local directory `README.md` should explain what belongs there and show the preferred finished artifact shape.
 - Agents should read that guide before creating new `RSH-*`, `DEC-*`, `LOG-*`, or upstream intake artifacts.
 - Not every surface needs the same amount of structure. `SPEC.md` and research memos may stay intentionally lightweight when the repo needs flexibility more than uniformity.
+
+## Inbox Pressure
+
+`INBOX.md` is an ephemeral pressure valve.
+Operators may capture low-confidence ideas, messenger fragments, voice-note summaries, links, pivots, and "maybe later" thoughts there.
+
+The daily inbox review should protect focus:
+
+- group related intake before deciding what matters
+- identify stale, noisy, duplicate, and low-signal clusters
+- route, research, plan, discard, or leave meaningful spans
+- promote only survived triage
+- report counts or clusters of noisy/held/discarded items instead of summarizing every fragment
 
 ## Commit Checks
 

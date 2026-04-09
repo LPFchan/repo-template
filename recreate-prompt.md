@@ -27,6 +27,9 @@ Behavioral requirements:
 - Do not mix truth, plans, research, decisions, and logs into one document type.
 - The orchestrator should decide where incoming work belongs.
 - Messenger or chat intake must not write truth docs directly.
+- Inbox intake is ephemeral pressure, not a backlog.
+- Daily inbox pressure review must cluster, route, research, plan, discard, or leave intake instead of producing an unconditional digest.
+- Messenger-derived intake should be grouped into meaningful spans before repo routing.
 - Research must stay separate from raw execution logs.
 - Decisions must stay separate from raw execution logs.
 - Upstream intake should be one subsystem of the overall repo model, not the whole system.
@@ -73,6 +76,7 @@ Structure requirements:
 - close the shape gap for durable artifact directories by making each local `README.md` define both the rules and a canonical example shape when practical
 - keep optional procedural skills outside the scaffold
 - avoid separate instruction and launcher-prompt layers unless the target environment truly needs them
+- do not add a second backlog artifact for inbox review
 
 Implementation steps:
 
@@ -84,9 +88,10 @@ Implementation steps:
 6. Seed the system with at least one real artifact when practical.
 7. Validate that the routing boundaries are explicit.
 8. Validate that commit provenance and artifact provenance reinforce each other.
-9. If commit-time enforcement was requested, wire in the hook and document installation.
-10. If remote enforcement was requested, add the CI workflow and document how it relates to the local hook.
-11. Summarize what is canonical, what is optional, and what should be copied verbatim.
+9. Validate that inbox pressure review is focus-protecting triage, not a giant digest of random ideas.
+10. If commit-time enforcement was requested, wire in the hook and document installation.
+11. If remote enforcement was requested, add the CI workflow and document how it relates to the local hook.
+12. Summarize what is canonical, what is optional, and what should be copied verbatim.
 
 Quality bar:
 

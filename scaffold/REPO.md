@@ -108,6 +108,7 @@ The orchestrator owns synthesis and routing.
 It may:
 
 - triage inbox items
+- run daily inbox pressure reviews
 - classify work into the right artifact layer
 - update `SPEC.md`, `STATUS.md`, and `PLANS.md`
 - create research memos
@@ -141,6 +142,47 @@ They may:
 
 They must not write truth docs directly.
 
+### Messenger-Derived Intake Spans
+
+Raw messenger or chat messages are immutable Off-Git events.
+Do not treat every raw message as a separate repo artifact.
+Do not treat full messenger history as one giant intake item.
+
+Use intake spans as a mutable working envelope around one or more relevant raw events.
+
+An intake span may be:
+
+- appended as new related messages arrive
+- edited into a clearer operator-intent summary
+- split when it contains multiple independent asks
+- merged when several messages are one meaningful thread
+- summarized into `INBOX.md` as an `IBX-*`
+- routed into durable repo artifacts after triage
+
+Triage should happen per meaningful span.
+Routed repo artifacts should copy a short summary, the stable intake ID, and any needed external provenance handle instead of relying on raw chat staying visible.
+
+## Inbox Pressure Review
+
+`INBOX.md` is an ephemeral scratch disk for untriaged intake.
+It is not a backlog, roadmap, brainstorm archive, or project digest.
+
+Run a daily inbox pressure review when the project receives substantial intake.
+This review is focus-protecting triage.
+It is not an unconditional digest of every random idea.
+
+During the review:
+
+- group related `IBX-*` entries and messenger-derived intake spans into meaningful clusters
+- identify stale, duplicate, low-confidence, noisy, or "maybe later" intake
+- ask whether each meaningful cluster should route, research, plan, discard, or stay held
+- promote only items that survived triage and have an accepted destination
+- report counts or clusters of held, discarded, stale, or noisy intake instead of summarizing every low-signal item
+- preserve `IBX-*` as a permanent provenance ID even if the inbox line is deleted
+
+Do not update `SPEC.md`, `STATUS.md`, `PLANS.md`, `research/`, or `records/decisions/` directly from raw inbox pressure.
+The orchestrator or operator-approved routing step owns promotion.
+
 ## Orchestrator Routing Ladder
 
 When new work arrives, the orchestrator should classify it in this order:
@@ -171,7 +213,8 @@ One task may legitimately touch multiple layers. For example:
 ## Write Rules
 
 - `SPEC.md`, `STATUS.md`, and `PLANS.md` should be updated only by the operator or orchestrator.
-- `INBOX.md` is an aggressive scratch disk. Purge entries once they are reflected elsewhere.
+- `INBOX.md` is an aggressive scratch disk. Purge entries once they are reflected elsewhere or explicitly discarded.
+- Daily inbox review should reduce pressure by clustering, routing, holding, or purging intake; it should not generate a larger digest by default.
 - `research/` keeps curated findings only.
 - `records/decisions/` is append-only by new decision file.
 - `records/agent-worklogs/` is append-only by appended entries or, when clarity requires it, a new log file.
