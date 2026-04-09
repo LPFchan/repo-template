@@ -183,6 +183,39 @@ During the review:
 Do not update `SPEC.md`, `STATUS.md`, `PLANS.md`, `research/`, or `records/decisions/` directly from raw inbox pressure.
 The orchestrator or operator-approved routing step owns promotion.
 
+## Promotion Discipline
+
+Promotion should be sparse.
+Do not mirror one evolving thought into every repo surface.
+
+Raw shaping may stay in chat, messenger, generic notes, off-Git capture, intake spans, or `INBOX.md` while the thought is still forming.
+Repo artifacts are a refinery: each layer should receive only the part that belongs there, when it is ready.
+
+Use each layer for its distinct job:
+
+- `INBOX.md`
+  - ephemeral routed intake
+- `research/`
+  - reusable exploration, evidence, framing, rejected paths, and open questions
+- `records/decisions/`
+  - meaningful accepted choices and why the winning choice won
+- `PLANS.md`
+  - accepted future work that survived triage
+- `SPEC.md`
+  - concise durable product or system truth after the argument is settled
+- `STATUS.md`
+  - current operational reality
+- `upstream-intake/`
+  - upstream review, upstream conflict, carry-forward, and operator escalation for upstream-related choices
+- `records/agent-worklogs/`
+  - execution history, not truth, decision, plan, or research mirrors
+
+A research memo may remain research forever.
+A decision record should exist only when a real product, architecture, workflow, trust, upstream, or repo-operating choice has been made.
+`SPEC.md`, `STATUS.md`, and `PLANS.md` should receive concise outcomes, not copied debate.
+
+One task may touch multiple layers, but each touched layer must have its own distinct job.
+
 ## Orchestrator Routing Ladder
 
 When new work arrives, the orchestrator should classify it in this order:
@@ -209,6 +242,9 @@ One task may legitimately touch multiple layers. For example:
 - a research session can create `RSH-*` plus a `LOG-*`
 - a product choice can create `DEC-*` and update `PLANS.md`
 - implementation progress can append `LOG-*` and update `STATUS.md`
+
+Touch multiple layers only when each layer receives distinct information.
+Do not copy the same conversation into research, decision, plan, spec, status, upstream, and log surfaces.
 
 ## Write Rules
 

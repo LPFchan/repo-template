@@ -24,6 +24,7 @@ When writing into an artifact directory, read that directory's `README.md` first
 - Preserve the boundary between `SPEC.md`, `STATUS.md`, `PLANS.md`, `INBOX.md`, `research/`, `records/decisions/`, and `records/agent-worklogs/`.
 - Worker agents should prefer worklogs, evidence, and proposals. The orchestrator or operator owns truth-doc updates unless the operator explicitly allows a different flow.
 - Treat `INBOX.md` as pressure, not a backlog. During inbox review, cluster intake and promote only survived triage.
+- Promote sparsely. Do not mirror one evolving conversation into research, decisions, plans, spec, status, upstream records, and worklogs.
 - If the repo tracks upstream on a cadence, use `upstream-intake/` instead of inventing a parallel workflow.
 - When creating artifacts or commits, follow the stable-ID and provenance rules in `REPO.md`.
 - Prefer the local `README.md` shape over ad hoc formatting when it defines one.
@@ -37,6 +38,7 @@ When you write or update repo artifacts, adherence to the repo's ruleset is requ
 
 - Do not invent a new document shape when the repo already provides a canonical surface, directory `README.md`, or explicit template.
 - Do not collapse truth, plans, decisions, research, inbox intake, and worklogs into one mixed artifact.
+- Do not promote exploratory debate into `SPEC.md`, `STATUS.md`, `PLANS.md`, or `records/decisions/` until there is a concise accepted outcome for that layer.
 - Do not turn an inbox review into a giant digest of every low-confidence idea. Report counts or clusters when full detail does not protect focus.
 - Do not write chatty transcripts where the repo expects normalized records.
 - If an artifact guide is intentionally lightweight, do not over-structure the document just to make it look uniform.

@@ -63,6 +63,8 @@ Use this skill with:
    - Example: `RSH-*` plus `LOG-*`
    - Example: `DEC-*` plus `PLANS.md`
    - Example: `LOG-*` plus `STATUS.md`
+   - Touch multiple layers only when each touched layer has a distinct job.
+   - Do not mirror the same evolving conversation into every artifact type.
 
 7. If Git commits are created, add commit trailers.
    - `project: <project-id>`
@@ -92,6 +94,7 @@ Escalate instead of guessing when the work:
 ## Quality Bar
 
 - clear routing
+- sparse promotion
 - clear provenance
 - clean separation of layers
 - reusable artifacts instead of chat-only outcomes
