@@ -10,7 +10,7 @@ repo-template is a framework for running ambitious projects without losing coher
 | Capture and routing | `INBOX.md` and the orchestrator make sure new capture lands in the right place instead of disappearing into external tools. |
 | Inbox pressure review | A daily IBX review can cluster, discard, hold, research, route, or promote capture without turning every idea into a future-direction digest. |
 | Sparse promotion | Exploratory shaping can stay in external capture or inbox; durable artifacts receive concise outcomes only when that layer has a distinct job. |
-| Durable memory | `research/`, `records/decisions/`, and `records/agent-worklogs/` preserve what was learned, what was decided, and what actually happened. |
+| Durable memory | `research/`, `records/decisions/`, and commit-backed `LOG-*` records preserve what was learned, what was decided, and what actually happened. |
 | Provenance | Stable IDs and commit trailers keep artifacts, agents, and commits connected over time. |
 | Procedural skills | `skills/` ships inside the scaffold so repeatable agent workflows are documented in the adopted repo. |
 | Optional upstream maintenance | `upstream-intake/` gives upstream-tracking projects a disciplined review and escalation system. Omit it when the repo is not tracking an upstream. |
@@ -32,7 +32,7 @@ repo-template is a framework for running ambitious projects without losing coher
 2. Tell the agent whether the optional `upstream-intake/` module should stay active, stay dormant, or be omitted for that repo. If it is omitted, omit its companion `skills/upstream-intake/` skill too.
 3. Have the agent copy the contents of [scaffold/](scaffold/) into the target repo root, including `REPO.md`, `SPEC.md`, `STATUS.md`, `PLANS.md`, `INBOX.md`, and root `skills/`.
 4. Keep the required baseline skills: `skills/repo-orchestrator/` and `skills/daily-inbox-pressure-review/`.
-5. Review the first seeded artifacts together, especially the initial `IBX-*`, `LOG-*`, and `DEC-*` items, and correct any routing mistakes early.
+5. Review the first seeded artifacts together, especially the initial `IBX-*`, `DEC-*`, and commit-backed `LOG-*` records, and correct any routing mistakes early.
 
 ## Instruction File Mapping
 
@@ -51,7 +51,7 @@ repo-template is a framework for running ambitious projects without losing coher
 repo-template now treats artifact shape as part of the contract, not just nice-to-have docs.
 
 - The local directory `README.md` should explain what belongs there and show the preferred finished artifact shape.
-- Agents should read that guide before creating new `RSH-*`, `DEC-*`, `LOG-*`, or upstream intake artifacts.
+- Agents should read that guide before creating new `RSH-*`, `DEC-*`, `UPS-*`, or other file-backed artifacts.
 - Not every surface needs the same amount of structure. `SPEC.md` and research memos may stay intentionally lightweight when the repo needs flexibility more than uniformity.
 
 ## Inbox Pressure
@@ -92,22 +92,34 @@ Normal commits should include:
 - `project: <project-id>`
 - `agent: <agent-id>`
 - `role: orchestrator|worker|subagent|operator`
+- `commit: LOG-...[, LOG-...]`
+
+Optional:
+
 - `artifacts: <artifact-id>[, <artifact-id>...]`
+
+Normal commit bodies should use:
+
+- `timestamp:`
+- `changes:`
+- `rationale:`
+- `checks:`
+- optional `notes:`
 
 Bootstrap or migration exceptions must be explicit in the commit message.
 
-Artifact linkage should stay useful, not bureaucratic.
+Commit-backed execution should stay useful, not bureaucratic.
 
-- A normal commit should reference at least one relevant artifact, but that artifact does not need to be newly created.
-- Agents should prefer appending to the current relevant `LOG-*` when the same workstream continues.
-- A new `LOG-*` should be created only when the work is distinct enough that a separate execution record improves clarity.
+- `commit:` is the canonical execution record for the commit.
+- `artifacts:` is optional and should reference only related non-`LOG-*` durable artifacts.
+- Multiple `LOG-*` ids in `commit:` mean the landed commit absorbs earlier execution records whose separate commits will not remain separate landed history.
 
 ## Prompt For Adopted Repos
 
 Use a migration prompt like this when introducing both local hooks and CI to an already-adopted repo:
 
 ```text
-This repo already uses repo-template. Introduce commit provenance enforcement without losing repo-specific workflow rules.
+This repo already uses repo-template. Introduce commit-backed execution enforcement without losing repo-specific workflow rules.
 
 Reference source:
 - /Users/yeowool/Documents/repo-template/scaffold/REPO.md
@@ -120,7 +132,7 @@ Reference source:
 - /Users/yeowool/Documents/repo-template/.github/workflows/commit-standards.yml
 
 Goals:
-1. Add local git-hook enforcement for commit provenance.
+1. Add local git-hook enforcement for the commit-backed execution contract.
 2. Add CI enforcement so pushed commits and PR commits are checked remotely too.
 3. Merge these rules into the repo's existing `AGENTS.md` and `CLAUDE.md` if they already exist.
 
@@ -132,11 +144,14 @@ Rules:
 - Reuse repo-template's commit checks unless the target repo already has a stronger equivalent.
 - Treat bootstrap or migration exceptions as explicit exceptions only.
 - Do not weaken existing enforcement during the merge.
+- Require `project:`, `agent:`, `role:`, and `commit:` on normal commits.
+- Treat `artifacts:` as optional and forbid `LOG-*` inside it.
+- Require the lowercase commit body keys `timestamp:`, `changes:`, `rationale:`, and `checks:` with `notes:` optional.
 
 Execution:
 - Inspect existing local hooks, CI workflows, `AGENTS.md`, and `CLAUDE.md`.
 - Add or merge the local `commit-msg` hook path and validator scripts.
-- Add or merge the CI workflow so commit provenance is checked on push and pull request.
+- Add or merge the CI workflow so the commit-backed execution contract is checked on push and pull request.
 - Update agent instruction files so they tell agents to satisfy the checks rather than bypass them.
 - Summarize any intentional divergences from repo-template.
 ```
@@ -150,10 +165,10 @@ Stable artifact types use these prefixes:
 | `IBX-*` | Inbox capture |
 | `RSH-*` | Research memos |
 | `DEC-*` | Decisions |
-| `LOG-*` | Worklogs |
+| `LOG-*` | Commit-backed execution records |
 | `UPS-*` | Upstream intake cycles |
 
-Stable-ID-bearing artifacts should open with:
+File-backed stable-ID-bearing artifacts should open with:
 
 | Field | Required value |
 | --- | --- |
@@ -167,6 +182,12 @@ After a repo adopts this system, every commit should carry these lowercase trail
 | `project:` | `<project-id>` |
 | `agent:` | `<agent-id>` |
 | `role:` | `orchestrator|worker|subagent|operator` |
+| `commit:` | `LOG-YYYYMMDD-HHMMSS-<agent-suffix>[, LOG-...]` |
+
+Optional:
+
+| Trailer | Value |
+| --- | --- |
 | `artifacts:` | `<artifact-id>[, <artifact-id>...]` |
 
-Artifact-less commits should be treated as bootstrap or migration exceptions only.
+Commits without the required execution trailers should be treated as bootstrap or migration exceptions only.

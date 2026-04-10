@@ -1,6 +1,6 @@
 # Research
 
-This directory stores curated research memos, not raw execution logs.
+This directory stores curated research memos, not raw execution history.
 
 ## Naming
 
@@ -14,7 +14,7 @@ Create an `RSH-*` memo when a session produces learning worth future retrieval.
 
 Do not create one for:
 
-- raw work trace that belongs in `records/agent-worklogs/`
+- raw work trace that belongs in commit history or Off-Git runtime memory
 - casual brainstorm fragments that still belong in `INBOX.md`
 
 ## Required Opening
