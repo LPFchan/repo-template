@@ -15,8 +15,8 @@ repo-template is a framework for running ambitious projects without losing coher
 | Procedural skills | `skills/` ships inside the scaffold so repeatable agent workflows are documented in the adopted repo. |
 | Optional upstream maintenance | `upstream-intake/` gives upstream-tracking projects a disciplined review and escalation system. Omit it when the repo is not tracking an upstream. |
 | Agent compatibility | Optional `AGENTS.md` and `CLAUDE.md` provide tool-specific entrypoints that defer to the same canonical repo rules. |
-| Commit enforcement | Optional git hooks can reject commits that miss required provenance trailers. |
-| Remote enforcement | Optional CI can re-check commit provenance on push and pull request. |
+| Commit enforcement | Required local git hooks reject commits that miss the execution contract. |
+| Remote enforcement | Required CI re-checks the same contract on push and pull request. |
 
 ## This Repo Includes
 
@@ -79,13 +79,13 @@ repo-template is a refinery, not a mirror maze.
 
 ## Commit Checks
 
-repo-template can also enforce commit provenance at commit time.
+repo-template requires commit-contract enforcement both locally and remotely.
 
-- `.githooks/commit-msg` runs a tracked commit-message check.
+- `.githooks/commit-msg` runs the required tracked commit-message check.
 - `scripts/check-commit-standards.sh` validates the required trailers.
 - `scripts/check-commit-range.sh` validates every commit in a git range.
 - `scripts/install-hooks.sh` enables the tracked hooks for the local clone.
-- `.github/workflows/commit-standards.yml` re-checks commit provenance in CI on push and pull request.
+- `.github/workflows/commit-standards.yml` re-checks the same contract in CI on push and pull request.
 
 Normal commits should include:
 
@@ -116,10 +116,10 @@ Commit-backed execution should stay useful, not bureaucratic.
 
 ## Prompt For Adopted Repos
 
-Use a migration prompt like this when introducing both local hooks and CI to an already-adopted repo:
+Use a migration prompt like this when upgrading an already-adopted repo:
 
 ```text
-This repo already uses repo-template. Introduce commit-backed execution enforcement without losing repo-specific workflow rules.
+This repo already uses repo-template. Upgrade it to the current upstream repo-template contract.
 
 Reference source:
 - /Users/yeowool/Documents/repo-template/scaffold/REPO.md
@@ -132,13 +132,17 @@ Reference source:
 - /Users/yeowool/Documents/repo-template/.github/workflows/commit-standards.yml
 
 Goals:
-1. Add local git-hook enforcement for the commit-backed execution contract.
-2. Add CI enforcement so pushed commits and PR commits are checked remotely too.
-3. Merge these rules into the repo's existing `AGENTS.md` and `CLAUDE.md` if they already exist.
+1. Adopt the current upstream repo-template policy text without drift or paraphrase.
+2. Make local git-hook enforcement mandatory.
+3. Make CI enforcement mandatory.
+4. Merge these rules into the repo's existing `AGENTS.md` and `CLAUDE.md` only through explicit upstream-governed replacement plus isolated local extensions.
 
 Rules:
-- Preserve existing repo-specific instructions, commands, and workflow notes.
-- Keep `AGENTS.md` and `CLAUDE.md` thin, but make them explicitly require compliant commit messages when hooks or CI are enabled.
+- Treat `scaffold/REPO.md`, `scaffold/AGENTS.md`, `scaffold/CLAUDE.md`, and the validator scripts/workflow as the canonical upstream source.
+- Copy upstream-governed policy sections verbatim unless a repo-specific divergence is truly required.
+- Do not paraphrase upstream policy text.
+- Preserve existing repo-specific instructions, commands, paths, and workflow notes only outside the upstream-governed sections, or under an explicitly labeled `Local Divergence` / local-extension section.
+- Keep `AGENTS.md` and `CLAUDE.md` thin, and make them explicitly require compliant commit messages locally and in CI.
 - Treat `AGENTS.md` as the editable source of agent rules and `CLAUDE.md` as a pointer shim where possible.
 - If the repo already has hooks or CI, merge with them instead of replacing them blindly.
 - Reuse repo-template's commit checks unless the target repo already has a stronger equivalent.
@@ -147,10 +151,13 @@ Rules:
 - Require `project:`, `agent:`, `role:`, and `commit:` on normal commits.
 - Treat `artifacts:` as optional and forbid `LOG-*` inside it.
 - Require the lowercase commit body keys `timestamp:`, `changes:`, `rationale:`, and `checks:` with `notes:` optional.
+- Local `commit-msg` hook enforcement is mandatory after migration.
+- CI enforcement on push and pull request is mandatory after migration.
 
 Execution:
 - Inspect existing local hooks, CI workflows, `AGENTS.md`, and `CLAUDE.md`.
-- Add or merge the local `commit-msg` hook path and validator scripts.
+- Replace upstream-governed policy text with the current upstream wording exactly.
+- Add or merge the local `commit-msg` hook path and validator scripts so hook enforcement is active by default.
 - Add or merge the CI workflow so the commit-backed execution contract is checked on push and pull request.
 - Update agent instruction files so they tell agents to satisfy the checks rather than bypass them.
 - Summarize any intentional divergences from repo-template.

@@ -360,9 +360,9 @@ Body rules:
 
 ## Commit-Time Enforcement
 
-If the repo enables commit hooks, every attempted commit should be checked against these provenance rules.
+Repos using this system must enforce these provenance rules both locally and remotely.
 
-Recommended minimum enforcement:
+Required minimum enforcement:
 
 - reject commits that do not include `project:`, `agent:`, `role:`, and `commit:`
 - reject roles outside `orchestrator|worker|subagent|operator`
@@ -375,7 +375,7 @@ Recommended minimum enforcement:
 
 The goal is not perfect policy automation. The goal is to stop obviously non-compliant commits before they land.
 
-Best practice is to use both:
+Required enforcement layers:
 
 - local git hooks for fast feedback before the commit is created
 - CI for remote re-validation on push or pull request

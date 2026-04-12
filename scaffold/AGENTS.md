@@ -29,8 +29,8 @@ When writing into an artifact directory, read that directory's `README.md` first
 - If the repo tracks upstream on a cadence, use `upstream-intake/` instead of inventing a parallel workflow.
 - When creating artifacts or commits, follow the stable-ID and provenance rules in `REPO.md`.
 - Prefer the local `README.md` shape over ad hoc formatting when it defines one.
-- If commit hooks are enabled, your commit message must satisfy the repo provenance check before the commit is allowed.
-- If CI commit checks are enabled, your pushed commits must satisfy the same provenance rules remotely.
+- Your commit message must satisfy the local repo provenance check before the commit is allowed.
+- Your pushed commits must satisfy the same provenance rules remotely in CI.
 - Treat each committed change as a canonical execution record through `commit: LOG-*`.
 - Normal commits must use the structured body keys `timestamp:`, `changes:`, `rationale:`, and `checks:` with `notes:` optional.
 

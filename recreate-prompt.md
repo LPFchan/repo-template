@@ -18,8 +18,8 @@ What to build:
    - optional `upstream-intake/`
    - optional `skills/upstream-intake/` companion workflow when `upstream-intake/` is enabled
 3. One provenance model using stable IDs, KST opened timestamps for file-backed artifacts, agent IDs, and commit-backed `LOG-*` execution records.
-4. Optional local git hook enforcement for commit provenance when the target repo wants commit-time checks.
-5. Optional CI enforcement for commit provenance on push and pull request when the target repo wants remote checks.
+4. Required local git-hook enforcement for the commit-backed execution contract.
+5. Required CI enforcement for the same contract on push and pull request.
 
 Behavioral requirements:
 
@@ -71,14 +71,14 @@ Commit provenance requirements:
   - `checks:`
   - optional `notes:`
 
-Commit hook option:
+Commit hook requirement:
 
-- when requested, add a tracked `commit-msg` hook plus validator script that checks the commit-backed execution contract
+- add a tracked `commit-msg` hook plus validator script that checks the commit-backed execution contract
 - the hook should allow explicit bootstrap or migration exceptions
 
-CI option:
+CI requirement:
 
-- when requested, add a workflow that checks every commit in the pushed or pull-request range
+- add a workflow that checks every commit in the pushed or pull-request range
 - CI should reuse the same provenance rules as the local hook
 
 Structure requirements:
@@ -105,8 +105,8 @@ Implementation steps:
 7. Validate that the routing boundaries are explicit.
 8. Validate that commit provenance and artifact provenance reinforce each other.
 9. Validate that inbox pressure review is focus-protecting triage, not a giant digest of random ideas.
-10. If commit-time enforcement was requested, wire in the hook and document installation.
-11. If remote enforcement was requested, add the CI workflow and document how it relates to the local hook.
+10. Wire in the local hook and document installation.
+11. Add the CI workflow and document how it relates to the local hook.
 12. Summarize what is canonical, what is optional, and what should be copied verbatim.
 
 Quality bar:
