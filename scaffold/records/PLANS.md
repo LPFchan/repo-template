@@ -10,7 +10,7 @@ Do not put raw brainstorms or untriaged intake here.
 - Only accepted future direction belongs here.
 - Plans should be specific enough to guide execution later.
 - Product or architecture rationale should link to `DEC-*` records when relevant.
-- When a plan becomes current truth, reflect it into `SPEC.md` or `STATUS.md` and update this file.
+- When a plan becomes current truth, reflect it into `records/SPEC.md` or `records/STATUS.md` and update this file.
 
 ## Approved Directions
 

@@ -12,7 +12,7 @@ Use it with:
 
 - [../../scripts/new-commit-message.sh](../../scripts/new-commit-message.sh)
 - [../../scripts/check-commit-standards.sh](../../scripts/check-commit-standards.sh)
-- [../../REPO.md](../../REPO.md)
+- [../../records/REPO.md](../../records/REPO.md)
 - [../../AGENTS.md](../../AGENTS.md)
 
 ## What This Skill Produces

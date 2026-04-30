@@ -15,7 +15,7 @@ Create an `RSH-*` memo when a session produces learning worth future retrieval.
 Do not create one for:
 
 - raw work trace that belongs in commit history or Off-Git runtime memory
-- casual brainstorm fragments that still belong in `INBOX.md`
+- casual brainstorm fragments that still belong in `records/INBOX.md`
 
 ## Required Opening
 

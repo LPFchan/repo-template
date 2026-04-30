@@ -3,15 +3,15 @@
 This repo uses repo-template.
 
 Treat `AGENTS.md` as the canonical editable agent-instructions file for the repo.
-It should enforce repo behavior while deferring canonical policy details to `REPO.md`.
+It should enforce repo behavior while deferring canonical policy details to `records/REPO.md`.
 
 ## Read First
 
-- `REPO.md`
-- `SPEC.md`
-- `STATUS.md`
-- `PLANS.md`
-- `INBOX.md`
+- `records/REPO.md`
+- `records/SPEC.md`
+- `records/STATUS.md`
+- `records/PLANS.md`
+- `records/INBOX.md`
 - `skills/README.md`
 
 Before running a repeatable repo workflow, read the relevant `skills/<name>/SKILL.md`. Treat skills as repo-native procedures even when the agent runtime does not auto-load them.
@@ -23,13 +23,13 @@ When writing into an artifact directory, read that directory's `README.md` first
 ## Operating Rules
 
 - Keep durable truth in repo files, not only in external tools.
-- Route work using the routing ladder in `REPO.md`.
-- Preserve the boundary between `SPEC.md`, `STATUS.md`, `PLANS.md`, `INBOX.md`, `research/`, `records/decisions/`, commit-backed execution history, and `upstream-intake/`.
+- Route work using the routing ladder in `records/REPO.md`.
+- Preserve the boundary between `records/SPEC.md`, `records/STATUS.md`, `records/PLANS.md`, `records/INBOX.md`, `records/research/`, `records/decisions/`, commit-backed execution history, and `records/upstream-intake/`.
 - Worker agents should prefer evidence, proposals, and compliant commit-backed execution records. The orchestrator or operator owns truth-doc updates unless the operator explicitly allows a different flow.
-- Treat `INBOX.md` as pressure, not a backlog. During inbox review, cluster capture and promote only survived triage.
+- Treat `records/INBOX.md` as pressure, not a backlog. During inbox review, cluster capture and promote only survived triage.
 - Promote sparsely. Do not mirror one evolving thought into research, decisions, plans, spec, status, upstream records, and execution records.
-- If the repo tracks upstream on a cadence, use `upstream-intake/` instead of inventing a parallel workflow.
-- When creating artifacts or commits, follow the stable-ID and provenance rules in `REPO.md`.
+- If the repo tracks upstream on a cadence, use `records/upstream-intake/` instead of inventing a parallel workflow.
+- When creating artifacts or commits, follow the stable-ID and provenance rules in `records/REPO.md`.
 - Prefer the local `README.md` shape over ad hoc formatting when it defines one.
 - Your commit message must satisfy the local repo provenance check before the commit is allowed.
 - Normal commits must be created from a commit-message skeleton registered by `scripts/new-commit-message.sh`.
@@ -43,7 +43,7 @@ When you write or update repo artifacts, adherence to the repo's ruleset is requ
 
 - Do not invent a new document shape when the repo already provides a canonical surface, directory `README.md`, or explicit template.
 - Do not collapse truth, plans, decisions, research, inbox capture, and execution history into one mixed artifact.
-- Do not promote exploratory debate into `SPEC.md`, `STATUS.md`, `PLANS.md`, or `records/decisions/` until there is a concise accepted outcome for that layer.
+- Do not promote exploratory debate into `records/SPEC.md`, `records/STATUS.md`, `records/PLANS.md`, or `records/decisions/` until there is a concise accepted outcome for that layer.
 - Do not turn an inbox review into a giant digest of every low-confidence idea. Report counts or clusters when full detail does not protect focus.
 - Do not write chatty transcripts where the repo expects normalized records.
 - If an artifact guide is intentionally lightweight, do not over-structure the document just to make it look uniform.

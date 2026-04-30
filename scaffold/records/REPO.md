@@ -1,5 +1,7 @@
 # Repo Operating Model
 
+**Template version: 1.0**
+
 This document is the canonical repo contract for repo-template-style repos.
 
 ## Purpose
@@ -26,7 +28,7 @@ Every repo using this system should separate these surfaces:
 | `PLANS.md` | Accepted future direction that is not current truth yet. | rewritten |
 | `INBOX.md` | Ephemeral capture waiting for triage. | append then purge |
 | `research/` | Curated research memos worth keeping. | append by new file |
-| `records/decisions/` | Durable decision records with rationale. | append-only by new file |
+| `decisions/` | Durable decision records with rationale. | append-only by new file |
 | `git commit history` | Canonical execution history through structured commit-backed `LOG-*` records. | append-only by new commit |
 | `skills/` | Required procedural workflows for repeatable agent tasks. | edit by skill |
 | `upstream-intake/` | Optional upstream review subsystem for repos that track an upstream. | append by cadence |
@@ -38,7 +40,7 @@ Some coding agents look for repo-root instruction files such as `AGENTS.md` or `
 When a repo using this model includes them:
 
 - they should act as entrypoints into the canonical rules, not competing policy documents
-- they should stay short enough that they do not drift from `REPO.md`
+- they should stay short enough that they do not drift from `records/REPO.md`
 - `AGENTS.md` should be the main editable agent-instructions file when both files exist
 - `CLAUDE.md` should be a thin shim that points to `AGENTS.md` when the tool supports it
 - `SKILL.md` stays separate because it defines a bounded reusable procedure, not repo-wide policy
@@ -47,7 +49,7 @@ When a repo using this model includes them:
 
 Recommended split:
 
-- `REPO.md`
+- `records/REPO.md`
   - canonical rules
 - `AGENTS.md`
   - canonical editable agent-instructions file
@@ -86,7 +88,7 @@ These boundaries are mandatory:
 - `PLANS.md` is not a brainstorm dump.
 - `INBOX.md` is not durable truth.
 - `research/` is not raw execution history.
-- `records/decisions/` is not the same as commit-backed execution history.
+- `decisions/` is not the same as commit-backed execution history.
 - Off-Git memory is not a substitute for repo-local canonical docs.
 
 That separation gives future operators and future agents fast answers to different questions:
@@ -95,7 +97,7 @@ That separation gives future operators and future agents fast answers to differe
 - What is true right now? -> `STATUS.md`
 - What future work is actually accepted? -> `PLANS.md`
 - What did we learn from exploration? -> `research/`
-- What did we decide and why? -> `records/decisions/`
+- What did we decide and why? -> `decisions/`
 - What actually happened during execution? -> git commit history via `commit: LOG-*`
 
 ## Roles
@@ -183,7 +185,7 @@ During the review:
 - report counts or clusters of held, discarded, stale, or noisy capture instead of summarizing every low-signal item
 - preserve `IBX-*` as a permanent provenance ID even if the inbox line is deleted
 
-Do not update `SPEC.md`, `STATUS.md`, `PLANS.md`, `research/`, or `records/decisions/` directly from raw inbox pressure.
+Do not update `SPEC.md`, `STATUS.md`, `PLANS.md`, `research/`, or `decisions/` directly from raw inbox pressure.
 The orchestrator or operator-approved routing step owns promotion.
 
 ## Promotion Discipline
@@ -200,7 +202,7 @@ Use each layer for its distinct job:
   - ephemeral routed capture
 - `research/`
   - reusable exploration, evidence, framing, rejected paths, and open questions
-- `records/decisions/`
+- `decisions/`
   - meaningful accepted choices and why the winning choice won
 - `PLANS.md`
   - accepted future work that survived triage
@@ -236,7 +238,7 @@ When new work arrives, the orchestrator should classify it in this order:
 6. Is this reusable exploration or horizon-expansion work?
    - Route to `research/`.
 7. Is this a meaningful decision with rationale?
-   - Route to `records/decisions/`.
+   - Route to `decisions/`.
 8. Is this implementation or execution that should land in git history?
    - Route to a compliant commit-backed `LOG-*` record.
 
@@ -255,7 +257,7 @@ Do not copy the same evolving thought into research, decision, plan, spec, statu
 - `INBOX.md` is an aggressive scratch disk. Purge entries once they are reflected elsewhere or explicitly discarded.
 - Daily inbox review should reduce pressure by clustering, routing, holding, or purging capture; it should not generate a larger digest by default.
 - `research/` keeps curated findings only.
-- `records/decisions/` is append-only by new decision file.
+- `decisions/` is append-only by new decision file.
 - Routine execution history lives in git commit history through commit-backed `LOG-*` records.
 - Do not invent a parallel execution-history file layer.
 - If work produces no durable repo change, route only the durable outcome that belongs elsewhere or keep the raw trace Off-Git.
@@ -412,4 +414,4 @@ Use it when you want a managed repo to share one canonical layout so humans and 
 
 In this template, scaffold files live under `scaffold/`.
 After adoption, the scaffold contents belong at the target repo root.
-For example, `scaffold/skills/repo-orchestrator/SKILL.md` becomes `skills/repo-orchestrator/SKILL.md` in the adopted repo.
+For example, `scaffold/records/` becomes `records/` in the adopted repo, and `scaffold/skills/repo-orchestrator/SKILL.md` becomes `skills/repo-orchestrator/SKILL.md`.

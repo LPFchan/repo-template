@@ -23,10 +23,10 @@ Conditional skills:
 
 - `upstream-intake/`
   - Companion workflow for the optional upstream-review module.
-  - Include it when the adopted repo enables `upstream-intake/`; omit it when the repo does not track an upstream.
+  - Include it when the adopted repo enables `records/upstream-intake/`; omit it when the repo does not track an upstream.
 
 Keep skills procedural.
-Do not duplicate the canonical rules from `REPO.md` inside them.
+Do not duplicate the canonical rules from `records/REPO.md` inside them.
 
 Use `SKILL.md` for:
 

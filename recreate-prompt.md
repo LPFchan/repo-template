@@ -5,18 +5,18 @@ Create a repo-native system that keeps truth, status, plans, research, decisions
 
 What to build:
 
-1. One canonical `REPO.md` document inside `scaffold/` that acts as the rules layer for adopted repos.
+1. One canonical `REPO.md` document inside `scaffold/records/` that acts as the rules layer for adopted repos.
 2. One ready-to-copy `scaffold/` directory containing:
    - optional thin `AGENTS.md` and `CLAUDE.md` compatibility files for tools that look for repo-root instructions
-   - `SPEC.md`
-   - `STATUS.md`
-   - `PLANS.md`
-   - `INBOX.md`
-   - `research/`
+   - `records/SPEC.md`
+   - `records/STATUS.md`
+   - `records/PLANS.md`
+   - `records/INBOX.md`
+   - `records/research/`
    - `records/decisions/`
    - required baseline `skills/`
-   - optional `upstream-intake/`
-   - optional `skills/upstream-intake/` companion workflow when `upstream-intake/` is enabled
+   - optional `records/upstream-intake/`
+   - optional `skills/upstream-intake/` companion workflow when `records/upstream-intake/` is enabled
 3. One provenance model using stable IDs, KST opened timestamps for file-backed artifacts, agent IDs, and commit-backed `LOG-*` execution records.
 4. Required local git-hook enforcement for the commit-backed execution contract.
 5. A local commit-message generator that gives agents a fresh compliant `LOG-*` skeleton before the validator enforces it.
@@ -100,7 +100,7 @@ Structure requirements:
 - when both exist, make `AGENTS.md` the editable instructions file and `CLAUDE.md` the shim that points to it
 - close the shape gap for durable artifact directories by making each local `README.md` define both the rules and a canonical example shape when practical
 - keep baseline procedural skills inside the scaffold so they deploy as repo-root `skills/`
-- keep upstream review optional; omit both `upstream-intake/` and `skills/upstream-intake/` when the repo does not track an upstream
+- keep upstream review optional; omit both `records/upstream-intake/` and `skills/upstream-intake/` when the repo does not track an upstream
 - avoid separate instruction and launcher-prompt layers unless the target environment truly needs them
 - do not add a second backlog artifact for inbox review
 - do not add a parallel file-based execution-history surface
@@ -108,9 +108,9 @@ Structure requirements:
 Implementation steps:
 
 1. Inspect the target repo and identify where process docs should live.
-2. Create `scaffold/REPO.md`.
+2. Create `scaffold/records/REPO.md`.
 3. Create `scaffold/` with the canonical repo surfaces, including baseline `skills/`.
-4. Add `upstream-intake/` and its companion `skills/upstream-intake/` skill inside the scaffold only when the repo needs recurring upstream review.
+4. Add `records/upstream-intake/` and its companion `skills/upstream-intake/` skill inside the scaffold only when the repo needs recurring upstream review.
 5. Validate that the scaffold contents are meant to copy to the target repo root. For example, `scaffold/skills/` in the template becomes root `skills/` after adoption.
 6. Seed the system with at least one real artifact when practical.
 7. Validate that the routing boundaries are explicit.

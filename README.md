@@ -6,14 +6,14 @@ repo-template is a framework for running ambitious projects without losing coher
 
 | Piece | What it does |
 | --- | --- |
-| Canonical truth | `SPEC.md`, `STATUS.md`, and `PLANS.md` keep the project's source of truth, current reality, and accepted future direction distinct. |
-| Capture and routing | `INBOX.md` and the orchestrator make sure new capture lands in the right place instead of disappearing into external tools. |
+| Canonical truth | `records/SPEC.md`, `records/STATUS.md`, and `records/PLANS.md` keep the project's source of truth, current reality, and accepted future direction distinct. |
+| Capture and routing | `records/INBOX.md` and the orchestrator make sure new capture lands in the right place instead of disappearing into external tools. |
 | Inbox pressure review | A daily IBX review can cluster, discard, hold, research, route, or promote capture without turning every idea into a future-direction digest. |
 | Sparse promotion | Exploratory shaping can stay in external capture or inbox; durable artifacts receive concise outcomes only when that layer has a distinct job. |
-| Durable memory | `research/`, `records/decisions/`, and commit-backed `LOG-*` records preserve what was learned, what was decided, and what actually happened. |
+| Durable memory | `records/research/`, `records/decisions/`, and commit-backed `LOG-*` records preserve what was learned, what was decided, and what actually happened. |
 | Provenance | Stable IDs and commit trailers keep artifacts, agents, and commits connected over time. |
 | Procedural skills | `skills/` ships inside the scaffold so repeatable agent workflows are documented in the adopted repo. |
-| Optional upstream maintenance | `upstream-intake/` gives upstream-tracking projects a disciplined review and escalation system. Omit it when the repo is not tracking an upstream. |
+| Optional upstream maintenance | `records/upstream-intake/` gives upstream-tracking projects a disciplined review and escalation system. Omit it when the repo is not tracking an upstream. |
 | Agent compatibility | Optional `AGENTS.md` and `CLAUDE.md` provide tool-specific entrypoints that defer to the same canonical repo rules. |
 | Commit enforcement | Required local git hooks reject commits that miss the execution contract. |
 | Commit generation | A local helper script and skill create compliant commit-message skeletons with fresh `LOG-*` ids. |
@@ -23,15 +23,15 @@ repo-template is a framework for running ambitious projects without losing coher
 
 | Surface | Role |
 | --- | --- |
-| [scaffold/REPO.md](scaffold/REPO.md) | The canonical repo contract that ships with adopted repos. |
+| [scaffold/records/REPO.md](scaffold/records/REPO.md) | The canonical repo contract that ships with adopted repos. |
 | [scaffold/skills/README.md](scaffold/skills/README.md) | Required procedural workflows that ship with adopted repos as root `skills/`. |
 | [recreate-prompt.md](recreate-prompt.md) | The quick-start prompt for rebuilding this system in another repo. |
 
 ## Getting Started
 
 1. As the operator, give your agent [recreate-prompt.md](recreate-prompt.md) and point it at the target repo.
-2. Tell the agent whether the optional `upstream-intake/` module should stay active, stay dormant, or be omitted for that repo. If it is omitted, omit its companion `skills/upstream-intake/` skill too.
-3. Have the agent copy the contents of [scaffold/](scaffold/) into the target repo root, including `REPO.md`, `SPEC.md`, `STATUS.md`, `PLANS.md`, `INBOX.md`, and root `skills/`.
+2. Tell the agent whether the optional `records/upstream-intake/` module should stay active, stay dormant, or be omitted for that repo. If it is omitted, omit its companion `skills/upstream-intake/` skill too.
+3. Have the agent copy the contents of [scaffold/](scaffold/) into the target repo root, including `records/REPO.md`, `records/SPEC.md`, `records/STATUS.md`, `records/PLANS.md`, `records/INBOX.md`, and root `skills/`.
 4. Keep the required baseline skills: `skills/repo-orchestrator/` and `skills/daily-inbox-pressure-review/`.
 5. Review the first seeded artifacts together, especially the initial `IBX-*`, `DEC-*`, and commit-backed `LOG-*` records, and correct any routing mistakes early.
 
@@ -39,7 +39,7 @@ repo-template is a framework for running ambitious projects without losing coher
 
 - `AGENTS.md`
   - Best as the canonical editable repo-level instructions file for agentic tools.
-  - Keep it thin and point it back to `REPO.md`.
+  - Keep it thin and point it back to `records/REPO.md`.
 - `CLAUDE.md`
   - Anthropic Claude Code project memory file.
   - Keep it as a thin shim that points to `AGENTS.md`.
@@ -53,11 +53,11 @@ repo-template now treats artifact shape as part of the contract, not just nice-t
 
 - The local directory `README.md` should explain what belongs there and show the preferred finished artifact shape.
 - Agents should read that guide before creating new `RSH-*`, `DEC-*`, `UPS-*`, or other file-backed artifacts.
-- Not every surface needs the same amount of structure. `SPEC.md` and research memos may stay intentionally lightweight when the repo needs flexibility more than uniformity.
+- Not every surface needs the same amount of structure. `records/SPEC.md` and research memos may stay intentionally lightweight when the repo needs flexibility more than uniformity.
 
 ## Inbox Pressure
 
-`INBOX.md` is an ephemeral pressure valve.
+`records/INBOX.md` is an ephemeral pressure valve.
 Operators may capture low-confidence ideas, external-tool fragments, transcripts, dictated notes, links, pivots, and "maybe later" thoughts there.
 
 The daily inbox review should protect focus:
@@ -72,10 +72,10 @@ The daily inbox review should protect focus:
 
 repo-template is a refinery, not a mirror maze.
 
-- Keep raw shaping in external capture, generic notes, off-Git capture packets, or `INBOX.md` while the thought is still forming.
-- Keep research in `research/` unless a meaningful choice has actually been accepted.
+- Keep raw shaping in external capture, generic notes, off-Git capture packets, or `records/INBOX.md` while the thought is still forming.
+- Keep research in `records/research/` unless a meaningful choice has actually been accepted.
 - Write `DEC-*` only for a real accepted product, architecture, workflow, trust, upstream, or repo-operating choice.
-- Update `SPEC.md`, `STATUS.md`, and `PLANS.md` with concise outcomes, not copied debate.
+- Update `records/SPEC.md`, `records/STATUS.md`, and `records/PLANS.md` with concise outcomes, not copied debate.
 - Touch multiple layers only when each layer has a distinct job.
 
 ## Commit Checks
@@ -134,7 +134,7 @@ Use a migration prompt like this when upgrading an already-adopted repo:
 This repo already uses repo-template. Upgrade it to the current upstream repo-template contract.
 
 Reference source:
-- /Users/yeowool/Documents/repo-template/scaffold/REPO.md
+- /Users/yeowool/Documents/repo-template/scaffold/records/REPO.md
 - /Users/yeowool/Documents/repo-template/scaffold/AGENTS.md
 - /Users/yeowool/Documents/repo-template/scaffold/CLAUDE.md
 - /Users/yeowool/Documents/repo-template/.githooks/prepare-commit-msg
@@ -152,7 +152,7 @@ Goals:
 4. Merge these rules into the repo's existing `AGENTS.md` and `CLAUDE.md` only through explicit upstream-governed replacement plus isolated local extensions.
 
 Rules:
-- Treat `scaffold/REPO.md`, `scaffold/AGENTS.md`, `scaffold/CLAUDE.md`, and the validator scripts/workflow as the canonical upstream source.
+- Treat `scaffold/records/REPO.md`, `scaffold/AGENTS.md`, `scaffold/CLAUDE.md`, and the validator scripts/workflow as the canonical upstream source.
 - Copy upstream-governed policy sections verbatim unless a repo-specific divergence is truly required.
 - Do not paraphrase upstream policy text.
 - Preserve existing repo-specific instructions, commands, paths, and workflow notes only outside the upstream-governed sections, or under an explicitly labeled `Local Divergence` / local-extension section.
