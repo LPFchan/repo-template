@@ -16,6 +16,8 @@ Required baseline skills:
 - `commit-generator/`
   - Commit scaffold workflow for repo-compliant `LOG-*` commits.
   - Use it when an agent needs to create a normal commit message without guessing the required structure or provenance fields.
+- `clean-correction-gate/`
+  - Confirmation workflow for destructive edits so replacements stay explicit and durable artifacts stay free of correction-history bleed.
 
 Conditional skills:
 
