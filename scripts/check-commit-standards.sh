@@ -248,7 +248,7 @@ check_primary_id_uniqueness() {
         if [ -n "$head_sha" ] && [ "$sha" = "$head_sha" ]; then
           continue
         fi
-        fail "primary \`commit:\` id already exists in history: $primary_id"
+        fail "primary \`commit:\` id already exists in history: $primary_id (generate a fresh skeleton with sh scripts/new-commit-message.sh --subject \"...\")"
       fi
     done
   done

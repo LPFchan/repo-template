@@ -364,6 +364,7 @@ Repos using this system must enforce these provenance rules both locally and rem
 
 Required minimum enforcement:
 
+- reject normal commits whose primary `LOG-*` id was not registered by `scripts/new-commit-message.sh`
 - reject commits that do not include `project:`, `agent:`, `role:`, and `commit:`
 - reject roles outside `orchestrator|worker|subagent|operator`
 - reject malformed `commit:` values
@@ -378,6 +379,7 @@ The goal is not perfect policy automation. The goal is to stop obviously non-com
 Required enforcement layers:
 
 - local git hooks for fast feedback before the commit is created
+- a `prepare-commit-msg` hook that makes `git commit -m ...` and other non-generated normal commit flows fail
 - CI for remote re-validation on push or pull request
 
 Every landed commit on the default branch must satisfy the same contract regardless of whether it came from the CLI, a merge queue, a bot, or a web UI.

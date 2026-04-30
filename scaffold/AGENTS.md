@@ -16,6 +16,8 @@ It should enforce repo behavior while deferring canonical policy details to `REP
 
 Before running a repeatable repo workflow, read the relevant `skills/<name>/SKILL.md`. Treat skills as repo-native procedures even when the agent runtime does not auto-load them.
 
+For normal commit work, read `skills/commit-generator/SKILL.md` before generating or validating a commit message. Normal commits must use `scripts/new-commit-message.sh`; hand-written commit messages should be rejected by the repo hooks.
+
 When writing into an artifact directory, read that directory's `README.md` first. If it includes a prescriptive shape, follow it. If it is intentionally lightweight, keep the output lightweight too.
 
 ## Operating Rules
@@ -30,6 +32,7 @@ When writing into an artifact directory, read that directory's `README.md` first
 - When creating artifacts or commits, follow the stable-ID and provenance rules in `REPO.md`.
 - Prefer the local `README.md` shape over ad hoc formatting when it defines one.
 - Your commit message must satisfy the local repo provenance check before the commit is allowed.
+- Normal commits must be created from a commit-message skeleton registered by `scripts/new-commit-message.sh`.
 - Your pushed commits must satisfy the same provenance rules remotely in CI.
 - Treat each committed change as a canonical execution record through `commit: LOG-*`.
 - Normal commits must use the structured body keys `timestamp:`, `changes:`, `rationale:`, and `checks:` with `notes:` optional.

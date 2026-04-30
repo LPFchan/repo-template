@@ -19,7 +19,8 @@ What to build:
    - optional `skills/upstream-intake/` companion workflow when `upstream-intake/` is enabled
 3. One provenance model using stable IDs, KST opened timestamps for file-backed artifacts, agent IDs, and commit-backed `LOG-*` execution records.
 4. Required local git-hook enforcement for the commit-backed execution contract.
-5. Required CI enforcement for the same contract on push and pull request.
+5. A local commit-message generator that gives agents a fresh compliant `LOG-*` skeleton before the validator enforces it.
+6. Required CI enforcement for the same contract on push and pull request.
 
 Behavioral requirements:
 
@@ -71,8 +72,18 @@ Commit provenance requirements:
   - `checks:`
   - optional `notes:`
 
+Commit generation requirements:
+
+- add `scripts/new-commit-message.sh`
+- generate fresh `LOG-*` ids from current KST time plus normalized agent suffix
+- register generated primary `LOG-*` ids in the local Git metadata directory
+- write the required structured body and trailers with TODO bullets for the agent to fill
+- refuse to overwrite an existing output file
+- keep the validator as the shape enforcement gate; the generator is the required normal-commit entrypoint
+
 Commit hook requirement:
 
+- add a tracked `prepare-commit-msg` hook that rejects normal commits whose primary `LOG-*` was not registered by `scripts/new-commit-message.sh`
 - add a tracked `commit-msg` hook plus validator script that checks the commit-backed execution contract
 - the hook should allow explicit bootstrap or migration exceptions
 
@@ -107,7 +118,8 @@ Implementation steps:
 9. Validate that inbox pressure review is focus-protecting triage, not a giant digest of random ideas.
 10. Wire in the local hook and document installation.
 11. Add the CI workflow and document how it relates to the local hook.
-12. Summarize what is canonical, what is optional, and what should be copied verbatim.
+12. Add the commit-generator skill so agents know to generate, fill, validate, and commit with a compliant message.
+13. Summarize what is canonical, what is optional, and what should be copied verbatim.
 
 Quality bar:
 

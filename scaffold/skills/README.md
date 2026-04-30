@@ -13,6 +13,9 @@ Required baseline skills:
   - Generic routing workflow for truth, status, plans, research, decisions, commit-backed execution, and inbox capture.
 - `daily-inbox-pressure-review/`
   - Focus-protecting daily triage for `IBX-*` capture and capture packets.
+- `commit-generator/`
+  - Commit scaffold workflow for repo-compliant `LOG-*` commits.
+  - Use it when an agent needs to create a normal commit message without guessing the required structure or provenance fields.
 
 Conditional skills:
 

@@ -16,6 +16,7 @@ repo-template is a framework for running ambitious projects without losing coher
 | Optional upstream maintenance | `upstream-intake/` gives upstream-tracking projects a disciplined review and escalation system. Omit it when the repo is not tracking an upstream. |
 | Agent compatibility | Optional `AGENTS.md` and `CLAUDE.md` provide tool-specific entrypoints that defer to the same canonical repo rules. |
 | Commit enforcement | Required local git hooks reject commits that miss the execution contract. |
+| Commit generation | A local helper script and skill create compliant commit-message skeletons with fresh `LOG-*` ids. |
 | Remote enforcement | Required CI re-checks the same contract on push and pull request. |
 
 ## This Repo Includes
@@ -82,10 +83,21 @@ repo-template is a refinery, not a mirror maze.
 repo-template requires commit-contract enforcement both locally and remotely.
 
 - `.githooks/commit-msg` runs the required tracked commit-message check.
+- `.githooks/prepare-commit-msg` requires normal commits to use a message skeleton registered by `scripts/new-commit-message.sh`, including when `git commit --no-verify` is used.
 - `scripts/check-commit-standards.sh` validates the required trailers.
 - `scripts/check-commit-range.sh` validates every commit in a git range.
+- `scripts/new-commit-message.sh` creates a compliant commit-message skeleton with a fresh `LOG-*` id.
 - `scripts/install-hooks.sh` enables the tracked hooks for the local clone.
 - `.github/workflows/commit-standards.yml` re-checks the same contract in CI on push and pull request.
+
+For a repo-compliant commit message skeleton with a fresh `LOG-*` id, run:
+
+```bash
+sh scripts/new-commit-message.sh --subject "feat: your change" --agent <agent-id>
+```
+
+Normal commits should then use `git commit -F <generated-message-file>`.
+Hand-written `git commit -m ...` commits should fail once the tracked hooks are installed.
 
 Normal commits should include:
 
@@ -125,9 +137,11 @@ Reference source:
 - /Users/yeowool/Documents/repo-template/scaffold/REPO.md
 - /Users/yeowool/Documents/repo-template/scaffold/AGENTS.md
 - /Users/yeowool/Documents/repo-template/scaffold/CLAUDE.md
+- /Users/yeowool/Documents/repo-template/.githooks/prepare-commit-msg
 - /Users/yeowool/Documents/repo-template/.githooks/commit-msg
 - /Users/yeowool/Documents/repo-template/scripts/check-commit-standards.sh
 - /Users/yeowool/Documents/repo-template/scripts/check-commit-range.sh
+- /Users/yeowool/Documents/repo-template/scripts/new-commit-message.sh
 - /Users/yeowool/Documents/repo-template/scripts/install-hooks.sh
 - /Users/yeowool/Documents/repo-template/.github/workflows/commit-standards.yml
 
