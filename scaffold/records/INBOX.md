@@ -1,19 +1,16 @@
 # <Project Name> Inbox
 
-This file is an ephemeral scratch disk for capture waiting to be triaged.
+Ephemeral scratch disk for untriaged capture. Not a backlog, roadmap, or project digest.
 
-Rules:
+## Rules
 
-- Keep it easy to append to from external capture, operator notes, or agent capture.
-- Use it as a pressure valve for untriaged capture, not as a backlog or brainstorm graveyard.
-- Group related raw source events into one meaningful inbox entry when possible.
-- Triage meaningful capture packets or clusters, not every raw source event and not an entire external history.
-- During daily review, route, research, plan, discard, or leave capture; do not produce a giant project digest.
-- It is okay to report counts or clusters of held, noisy, stale, or discarded items without summarizing every item.
-- Do not update truth docs directly from inbox. Route through the orchestrator or an operator-approved decision.
-- Remove entries once they are reflected into durable repo artifacts.
-- Keep the stable `IBX-*` id even after the inbox entry itself is later deleted.
-- Do not treat this file as durable truth.
+- Append freely from external capture, operator notes, or agent capture.
+- Group related source events into one `IBX-*` entry when possible.
+- Triage meaningful clusters, not raw source events or full external histories.
+- Route, research, plan, discard, or leave; do not produce a project digest.
+- Report counts or clusters of held/noisy/discarded items instead of summarizing every item.
+- Preserve `IBX-*` as permanent provenance even after the entry is deleted.
+- Remove entries once reflected into durable repo artifacts.
 
 ## Active Capture
 
@@ -51,7 +48,7 @@ Rules:
 
 ## Daily Pressure Review Scratch
 
-Use this section during a daily IBX review, then clear it after entries are routed, held, discarded, or escalated.
+Use during review, clear after routing.
 
 - Review date:
 - Reviewer:
@@ -66,4 +63,4 @@ Use this section during a daily IBX review, then clear it after entries are rout
 
 ## Purge Rule
 
-Once an item has been reflected into `SPEC.md`, `STATUS.md`, `PLANS.md`, `research/`, `decisions/`, a committed `LOG-*` execution record, `upstream-intake/`, or a deliberate discard/hold note, remove the inbox entry.
+Once an item has been reflected into `SPEC.md`, `STATUS.md`, `PLANS.md`, `research/`, `decisions/`, a committed `LOG-*`, `upstream-intake/`, or a deliberate discard/hold note, remove the entry.

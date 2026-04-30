@@ -1,214 +1,72 @@
 # repo-template
 
-repo-template is a framework for running ambitious projects without losing coherence. It gives every project a canonical home for memory, direction, research, and execution, so scattered ideas, buried decisions, drifting specs, and disconnected execution history stop derailing the work.
-
-## Core Pieces
-
-| Piece | What it does |
-| --- | --- |
-| Canonical truth | `records/SPEC.md`, `records/STATUS.md`, and `records/PLANS.md` keep the project's source of truth, current reality, and accepted future direction distinct. |
-| Capture and routing | `records/INBOX.md` and the orchestrator make sure new capture lands in the right place instead of disappearing into external tools. |
-| Inbox pressure review | A daily IBX review can cluster, discard, hold, research, route, or promote capture without turning every idea into a future-direction digest. |
-| Sparse promotion | Exploratory shaping can stay in external capture or inbox; durable artifacts receive concise outcomes only when that layer has a distinct job. |
-| Durable memory | `records/research/`, `records/decisions/`, and commit-backed `LOG-*` records preserve what was learned, what was decided, and what actually happened. |
-| Provenance | Stable IDs and commit trailers keep artifacts, agents, and commits connected over time. |
-| Procedural skills | `skills/` ships inside the scaffold so repeatable agent workflows are documented in the adopted repo. |
-| Optional upstream maintenance | `records/upstream-intake/` gives upstream-tracking projects a disciplined review and escalation system. Omit it when the repo is not tracking an upstream. |
-| Agent compatibility | Optional `AGENTS.md` and `CLAUDE.md` provide tool-specific entrypoints that defer to the same canonical repo rules. |
-| Commit enforcement | Required local git hooks reject commits that miss the execution contract. |
-| Commit generation | A local helper script and skill create compliant commit-message skeletons with fresh `LOG-*` ids. |
-| Remote enforcement | Required CI re-checks the same contract on push and pull request. |
-
-## This Repo Includes
-
-| Surface | Role |
-| --- | --- |
-| [scaffold/records/REPO.md](scaffold/records/REPO.md) | The canonical repo contract that ships with adopted repos. |
-| [scaffold/skills/README.md](scaffold/skills/README.md) | Required procedural workflows that ship with adopted repos as root `skills/`. |
-| [recreate-prompt.md](recreate-prompt.md) | The quick-start prompt for rebuilding this system in another repo. |
+A repo operating system for projects managed by one operator plus many agents. Gives every project a canonical home for truth, memory, direction, and execution provenance.
 
 ## Getting Started
 
-1. As the operator, give your agent [recreate-prompt.md](recreate-prompt.md) and point it at the target repo.
-2. Tell the agent whether the optional `records/upstream-intake/` module should stay active, stay dormant, or be omitted for that repo. If it is omitted, omit its companion `skills/upstream-intake/` skill too.
-3. Have the agent copy the contents of [scaffold/](scaffold/) into the target repo root, including `records/REPO.md`, `records/SPEC.md`, `records/STATUS.md`, `records/PLANS.md`, `records/INBOX.md`, and root `skills/`.
-4. Keep the required baseline skills: `skills/repo-orchestrator/` and `skills/daily-inbox-pressure-review/`.
-5. Review the first seeded artifacts together, especially the initial `IBX-*`, `DEC-*`, and commit-backed `LOG-*` records, and correct any routing mistakes early.
+Give your agent this prompt, pointing at the target repo:
 
-## Instruction File Mapping
+> Fetch the latest repo-template from `LPFchan/repo-template`. Copy `scaffold/` contents into the target repo root. Follow the canonical rules in `records/REPO.md`. Enable `upstream-intake/` only if the target repo tracks an upstream. Wire local hooks and CI enforcement. Seed at least one real artifact to verify routing boundaries.
 
-- `AGENTS.md`
-  - Best as the canonical editable repo-level instructions file for agentic tools.
-  - Keep it thin and point it back to `records/REPO.md`.
-- `CLAUDE.md`
-  - Anthropic Claude Code project memory file.
-  - Keep it as a thin shim that points to `AGENTS.md`.
-- `SKILL.md`
-  - A reusable workflow file that lives under `skills/<name>/SKILL.md`.
-  - Use it for bounded procedures, outputs, and escalation triggers, not repo-wide truth.
+## Scaffold Map
 
-## Writing Discipline
+| Path | Answers |
+| --- | --- |
+| `records/REPO.md` | How this repo operates |
+| `records/SPEC.md` | What this repo is |
+| `records/STATUS.md` | Where this repo currently sits |
+| `records/PLANS.md` | What's planned for this repo |
+| `records/INBOX.md` | Capture waiting for triage |
+| `records/research/` | What we learned from exploration |
+| `records/decisions/` | What we decided and why |
+| `records/upstream-intake/` | Upstream changes we reviewed |
+| `skills/` | Repeatable procedural workflows |
+| `AGENTS.md` | Agent instructions entrypoint |
+| `CLAUDE.md` | Thin shim pointing to `AGENTS.md` |
 
-repo-template now treats artifact shape as part of the contract, not just nice-to-have docs.
+Agent instruction files stay thin. Canonical policy lives in `records/REPO.md`.
 
-- The local directory `README.md` should explain what belongs there and show the preferred finished artifact shape.
-- Agents should read that guide before creating new `RSH-*`, `DEC-*`, `UPS-*`, or other file-backed artifacts.
-- Not every surface needs the same amount of structure. `records/SPEC.md` and research memos may stay intentionally lightweight when the repo needs flexibility more than uniformity.
+## Commit Format
 
-## Inbox Pressure
+Every normal commit must carry:
 
-`records/INBOX.md` is an ephemeral pressure valve.
-Operators may capture low-confidence ideas, external-tool fragments, transcripts, dictated notes, links, pivots, and "maybe later" thoughts there.
+```text
+<subject line>
 
-The daily inbox review should protect focus:
+timestamp: YYYY-MM-DD HH-mm-ss KST
+changes:
+- ...
+rationale:
+- ...
+checks:
+- ...
 
-- group related capture before deciding what matters
-- identify stale, noisy, duplicate, and low-signal clusters
-- route, research, plan, discard, or leave meaningful capture packets
-- promote only survived triage
-- report counts or clusters of noisy/held/discarded items instead of summarizing every fragment
+project: <project-id>
+agent: <agent-id>
+role: orchestrator|worker|subagent|operator
+commit: LOG-YYYYMMDD-HHMMSS-<agent-suffix>
+artifacts: DEC-..., RSH-...   (optional; no LOG-*)
+```
 
-## Sparse Promotion
-
-repo-template is a refinery, not a mirror maze.
-
-- Keep raw shaping in external capture, generic notes, off-Git capture packets, or `records/INBOX.md` while the thought is still forming.
-- Keep research in `records/research/` unless a meaningful choice has actually been accepted.
-- Write `DEC-*` only for a real accepted product, architecture, workflow, trust, upstream, or repo-operating choice.
-- Update `records/SPEC.md`, `records/STATUS.md`, and `records/PLANS.md` with concise outcomes, not copied debate.
-- Touch multiple layers only when each layer has a distinct job.
-
-## Commit Checks
-
-repo-template requires commit-contract enforcement both locally and remotely.
-
-- `.githooks/commit-msg` runs the required tracked commit-message check.
-- `.githooks/prepare-commit-msg` requires normal commits to use a message skeleton registered by `scripts/new-commit-message.sh`, including when `git commit --no-verify` is used.
-- `scripts/check-commit-standards.sh` validates the required trailers.
-- `scripts/check-commit-range.sh` validates every commit in a git range.
-- `scripts/new-commit-message.sh` creates a compliant commit-message skeleton with a fresh `LOG-*` id.
-- `scripts/install-hooks.sh` enables the tracked hooks for the local clone.
-- `.github/workflows/commit-standards.yml` re-checks the same contract in CI on push and pull request.
-
-For a repo-compliant commit message skeleton with a fresh `LOG-*` id, run:
+Generate a compliant skeleton:
 
 ```bash
 sh scripts/new-commit-message.sh --subject "feat: your change" --agent <agent-id>
 ```
 
-Normal commits should then use `git commit -F <generated-message-file>`.
-Hand-written `git commit -m ...` commits should fail once the tracked hooks are installed.
+Commit with `git commit -F <generated-file>`. Hand-written `git commit -m` is rejected by the hooks.
 
-Normal commits should include:
+## Enforcement
 
-- `project: <project-id>`
-- `agent: <agent-id>`
-- `role: orchestrator|worker|subagent|operator`
-- `commit: LOG-...[, LOG-...]`
+- `.githooks/prepare-commit-msg` — rejects non-generated normal commits
+- `.githooks/commit-msg` — validates execution contract
+- `.github/workflows/commit-standards.yml` — CI re-validation on push and PR
+- Bootrap/migration commits are the only exception path
 
-Optional:
+Run `sh scripts/install-hooks.sh` to enable tracked hooks locally.
 
-- `artifacts: <artifact-id>[, <artifact-id>...]`
+## Upgrading an Adopted Repo
 
-Normal commit bodies should use:
+To upgrade an already-adopted repo to the current template contract:
 
-- `timestamp:`
-- `changes:`
-- `rationale:`
-- `checks:`
-- optional `notes:`
-
-Bootstrap or migration exceptions must be explicit in the commit message.
-
-Commit-backed execution should stay useful, not bureaucratic.
-
-- `commit:` is the canonical execution record for the commit.
-- `artifacts:` is optional and should reference only related non-`LOG-*` durable artifacts.
-- Multiple `LOG-*` ids in `commit:` mean the landed commit absorbs earlier execution records whose separate commits will not remain separate landed history.
-
-## Prompt For Adopted Repos
-
-Use a migration prompt like this when upgrading an already-adopted repo:
-
-```text
-This repo already uses repo-template. Upgrade it to the current upstream repo-template contract.
-
-Reference source:
-- /Users/yeowool/Documents/repo-template/scaffold/records/REPO.md
-- /Users/yeowool/Documents/repo-template/scaffold/AGENTS.md
-- /Users/yeowool/Documents/repo-template/scaffold/CLAUDE.md
-- /Users/yeowool/Documents/repo-template/.githooks/prepare-commit-msg
-- /Users/yeowool/Documents/repo-template/.githooks/commit-msg
-- /Users/yeowool/Documents/repo-template/scripts/check-commit-standards.sh
-- /Users/yeowool/Documents/repo-template/scripts/check-commit-range.sh
-- /Users/yeowool/Documents/repo-template/scripts/new-commit-message.sh
-- /Users/yeowool/Documents/repo-template/scripts/install-hooks.sh
-- /Users/yeowool/Documents/repo-template/.github/workflows/commit-standards.yml
-
-Goals:
-1. Adopt the current upstream repo-template policy text without drift or paraphrase.
-2. Make local git-hook enforcement mandatory.
-3. Make CI enforcement mandatory.
-4. Merge these rules into the repo's existing `AGENTS.md` and `CLAUDE.md` only through explicit upstream-governed replacement plus isolated local extensions.
-
-Rules:
-- Treat `scaffold/records/REPO.md`, `scaffold/AGENTS.md`, `scaffold/CLAUDE.md`, and the validator scripts/workflow as the canonical upstream source.
-- Copy upstream-governed policy sections verbatim unless a repo-specific divergence is truly required.
-- Do not paraphrase upstream policy text.
-- Preserve existing repo-specific instructions, commands, paths, and workflow notes only outside the upstream-governed sections, or under an explicitly labeled `Local Divergence` / local-extension section.
-- Keep `AGENTS.md` and `CLAUDE.md` thin, and make them explicitly require compliant commit messages locally and in CI.
-- Treat `AGENTS.md` as the editable source of agent rules and `CLAUDE.md` as a pointer shim where possible.
-- If the repo already has hooks or CI, merge with them instead of replacing them blindly.
-- Reuse repo-template's commit checks unless the target repo already has a stronger equivalent.
-- Treat bootstrap or migration exceptions as explicit exceptions only.
-- Do not weaken existing enforcement during the merge.
-- Require `project:`, `agent:`, `role:`, and `commit:` on normal commits.
-- Treat `artifacts:` as optional and forbid `LOG-*` inside it.
-- Require the lowercase commit body keys `timestamp:`, `changes:`, `rationale:`, and `checks:` with `notes:` optional.
-- Local `commit-msg` hook enforcement is mandatory after migration.
-- CI enforcement on push and pull request is mandatory after migration.
-
-Execution:
-- Inspect existing local hooks, CI workflows, `AGENTS.md`, and `CLAUDE.md`.
-- Replace upstream-governed policy text with the current upstream wording exactly.
-- Add or merge the local `commit-msg` hook path and validator scripts so hook enforcement is active by default.
-- Add or merge the CI workflow so the commit-backed execution contract is checked on push and pull request.
-- Update agent instruction files so they tell agents to satisfy the checks rather than bypass them.
-- Summarize any intentional divergences from repo-template.
-```
-
-## Provenance Rules
-
-Stable artifact types use these prefixes:
-
-| Prefix | Artifact type |
-| --- | --- |
-| `IBX-*` | Inbox capture |
-| `RSH-*` | Research memos |
-| `DEC-*` | Decisions |
-| `LOG-*` | Commit-backed execution records |
-| `UPS-*` | Upstream intake cycles |
-
-File-backed stable-ID-bearing artifacts should open with:
-
-| Field | Required value |
-| --- | --- |
-| `Opened` | `YYYY-MM-DD HH-mm-ss KST` |
-| `Recorded by agent` | `<agent-id>` |
-
-After a repo adopts this system, every commit should carry these lowercase trailers:
-
-| Trailer | Value |
-| --- | --- |
-| `project:` | `<project-id>` |
-| `agent:` | `<agent-id>` |
-| `role:` | `orchestrator|worker|subagent|operator` |
-| `commit:` | `LOG-YYYYMMDD-HHMMSS-<agent-suffix>[, LOG-...]` |
-
-Optional:
-
-| Trailer | Value |
-| --- | --- |
-| `artifacts:` | `<artifact-id>[, <artifact-id>...]` |
-
-Commits without the required execution trailers should be treated as bootstrap or migration exceptions only.
+> This repo already uses repo-template. Fetch the latest from `LPFchan/repo-template`. Merge upstream policy into `records/REPO.md`, `AGENTS.md`, and `CLAUDE.md` verbatim. Merge hooks, scripts, and CI workflow. Do not paraphrase upstream policy. Preserve local extensions under an explicit `Local Divergence` section. Do not weaken existing enforcement.

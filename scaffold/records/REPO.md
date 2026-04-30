@@ -1,335 +1,180 @@
 # Repo Operating Model
 
-**Template version: 1.0.2**
+**Template version: 1.1**
 
 This document is the canonical repo contract for repo-template-style repos.
 
-## Purpose
-
-Use this model when a repo is managed by one operator plus many agents and you want the repo itself to remain legible over time.
-
-The goal is simple:
-
-- keep canonical truth in-repo
-- keep noisy activity out of truth docs
-- keep provenance explicit
-- let the orchestrator route work without inventing new storage rules each time
-
-This file is part of the ready-to-copy scaffold for adopted repos.
-
 ## Core Surfaces
-
-Every repo using this system should separate these surfaces:
 
 | Surface | Role | Mutability |
 | --- | --- | --- |
 | `SPEC.md` | Durable statement of what the project is supposed to be. | rewritten |
 | `STATUS.md` | What is true right now operationally. | rewritten |
-| `PLANS.md` | Accepted future direction that is not current truth yet. | rewritten |
+| `PLANS.md` | Accepted future direction, not yet current truth. | rewritten |
 | `INBOX.md` | Ephemeral capture waiting for triage. | append then purge |
-| `research/` | Curated research memos worth keeping. | append by new file |
+| `research/` | Curated research memos. | append by new file |
 | `decisions/` | Durable decision records with rationale. | append-only by new file |
-| `git commit history` | Canonical execution history through structured commit-backed `LOG-*` records. | append-only by new commit |
-| `skills/` | Required procedural workflows for repeatable agent tasks. | edit by skill |
-| `upstream-intake/` | Optional upstream review subsystem for repos that track an upstream. | append by cadence |
+| `git commit history` | Canonical execution history via `LOG-*`. | append-only by new commit |
+| `skills/` | Repeatable procedural workflows for agent tasks. | edit by skill |
+| `upstream-intake/` | Optional upstream review subsystem. | append by cadence |
 
 ## Agent Compatibility Files
 
-Some coding agents look for repo-root instruction files such as `AGENTS.md` or `CLAUDE.md`.
+`AGENTS.md` and `CLAUDE.md` are repo-root instruction files. They must stay thin entrypoints into `records/REPO.md`, not competing policy documents.
 
-When a repo using this model includes them:
-
-- they should act as entrypoints into the canonical rules, not competing policy documents
-- they should stay short enough that they do not drift from `records/REPO.md`
-- `AGENTS.md` should be the main editable agent-instructions file when both files exist
-- `CLAUDE.md` should be a thin shim that points to `AGENTS.md` when the tool supports it
-- `SKILL.md` stays separate because it defines a bounded reusable procedure, not repo-wide policy
-- `skills/` should ship with adopted repos as repo-native procedural documentation, even when the agent runtime does not auto-load skills
-- optional repo subsystems may have optional companion skills
-
-Recommended split:
-
-- `records/REPO.md`
-  - canonical rules
-- `AGENTS.md`
-  - canonical editable agent-instructions file
-- `CLAUDE.md`
-  - Claude Code shim that points to `AGENTS.md`
-- `skills/<name>/SKILL.md`
-  - procedure for one repeatable workflow
+- `AGENTS.md` is the canonical editable agent-instructions file.
+- `CLAUDE.md` is a thin shim pointing to `AGENTS.md`.
+- `SKILL.md` defines a bounded reusable procedure under `skills/<name>/`, not repo-wide policy.
+- `skills/` ships with adopted repos as repo-native procedural docs, even when the agent runtime does not auto-load skills.
 
 ## Artifact Writing Discipline
 
-Macro structure is not enough on its own. Agents should not improvise document shape when the repo already defines one.
-
 When writing repo files or commit-backed execution records:
 
-- read the nearest canonical surface, directory `README.md`, and any explicit template before drafting
-- if the local `README.md` includes a default shape or canonical example, follow it by default
-- use the established section order only when the surface actually defines one and it helps the repo stay legible
+- read the target directory's `README.md` and any explicit template before drafting
+- follow the local guide's default shape or canonical example when it defines one
 - write normalized repo records, not external transcripts or stream-of-consciousness notes
-- keep facts, decisions, open questions, and next steps clearly separated
-- summarize evidence and outcomes instead of pasting raw command output unless the literal output is the artifact
-- prefer short declarative bullets or paragraphs over vague filler
+- separate facts, decisions, open questions, and next steps
+- summarize evidence and outcomes; paste raw output only when the output itself is the artifact
 
-When a directory exists to store a durable artifact type, it should ideally include:
-
-- a `README.md` that explains what belongs there
-- a default shape or canonical example inside that same `README.md` when that artifact type benefits from it
-
-That single guide helps future agents copy a house style instead of inventing one.
+Every durable artifact directory must include a `README.md` that defines what belongs there and, when the artifact type benefits from it, a canonical example shape.
 
 ## Separation Rules
-
-These boundaries are mandatory:
 
 - `SPEC.md` is not a changelog.
 - `STATUS.md` is not a transcript.
 - `PLANS.md` is not a brainstorm dump.
 - `INBOX.md` is not durable truth.
 - `research/` is not raw execution history.
-- `decisions/` is not the same as commit-backed execution history.
+- `decisions/` is not commit-backed execution history.
 - Off-Git memory is not a substitute for repo-local canonical docs.
-
-That separation gives future operators and future agents fast answers to different questions:
-
-- What is the project? -> `SPEC.md`
-- What is true right now? -> `STATUS.md`
-- What future work is actually accepted? -> `PLANS.md`
-- What did we learn from exploration? -> `research/`
-- What did we decide and why? -> `decisions/`
-- What actually happened during execution? -> git commit history via `commit: LOG-*`
 
 ## Roles
 
 ### Operator
 
-The operator is the final authority for product direction, escalation outcomes, and acceptance of truth changes.
+Final authority for product direction, escalation outcomes, and acceptance of truth changes.
 
 ### Orchestrator Agent
 
-The orchestrator owns synthesis and routing.
-
-It may:
-
-- triage inbox items
-- run daily inbox pressure reviews
-- classify work into the right artifact layer
-- update `SPEC.md`, `STATUS.md`, and `PLANS.md`
-- create research memos
-- create decision records
-- create compliant commit-backed execution records
-- translate external capture into repo artifacts
-- escalate non-obvious product, architecture, workflow, or policy calls
+Owns synthesis and routing. May triage inbox, run daily IBX reviews, classify work, update `SPEC.md`/`STATUS.md`/`PLANS.md`, create research memos and decision records, create compliant `LOG-*` commits, translate external capture into repo artifacts, and escalate non-obvious calls.
 
 ### Worker Agents
 
-Worker agents execute bounded tasks.
+Execute bounded tasks. May produce evidence, summaries, and implementation outputs; create compliant `LOG-*` commits when granted commit authority; propose truth changes through the orchestrator.
 
-They may:
-
-- produce evidence, summaries, and implementation outputs
-- create compliant commit-backed execution records when granted commit authority
-- propose truth changes through the orchestrator
-
-They should not update `SPEC.md`, `STATUS.md`, or `PLANS.md` directly unless the operator explicitly allows that flow.
+Must not update `SPEC.md`, `STATUS.md`, or `PLANS.md` directly unless the operator explicitly allows it.
 
 ### External Capture Surfaces
 
-External capture surfaces are capture and control channels.
+Capture and control channels. May create/append inbox capture, request approvals, deliver summaries, surface blocked states.
 
-They may:
-
-- create or append inbox capture
-- request approvals
-- deliver summaries
-- surface blocked states
-
-They must not write truth docs directly.
+Must not write truth docs directly.
 
 ### Capture Packets
 
-Raw external source events are immutable Off-Git events.
-Do not treat every raw source event as a separate repo artifact.
-Do not treat a full external-tool history as one giant inbox item.
+Mutable working envelopes around one or more raw source events. Raw source events are immutable Off-Git.
 
-Use capture packets as mutable working envelopes around one or more relevant raw source events.
-
-A capture packet may be:
-
-- appended as new related source events arrive
-- edited into a clearer operator-intent summary
-- split when it contains multiple independent asks
-- merged when several source events are one meaningful thread
-- summarized into `INBOX.md` as an `IBX-*`
-- routed into durable repo artifacts after triage
-
-Triage should happen per meaningful capture packet.
-Routed repo artifacts should copy a short summary, the stable inbox ID, and any needed external provenance handle instead of relying on raw external source staying visible.
+A capture packet may be appended, edited, split, merged, summarized into `INBOX.md` as an `IBX-*`, or routed into durable repo artifacts after triage. Routed artifacts copy the summary, the stable `IBX-*`, and any needed external provenance handle.
 
 ## Inbox Pressure Review
 
-`INBOX.md` is an ephemeral scratch disk for untriaged capture.
-It is not a backlog, roadmap, brainstorm archive, or project digest.
-
-Run a daily inbox pressure review when the project receives substantial capture.
-This review is focus-protecting triage.
-It is not an unconditional digest of every random idea.
-
-During the review:
+Run daily when the project receives substantial capture. This is focus-protecting triage, not an unconditional digest.
 
 - group related `IBX-*` entries and capture packets into meaningful clusters
-- identify stale, duplicate, low-confidence, noisy, or "maybe later" capture
-- ask whether each meaningful cluster should route, research, plan, discard, or stay held
+- identify stale, duplicate, low-confidence, noisy, or held capture
+- classify each cluster: route, research, plan, discard, or leave
 - promote only items that survived triage and have an accepted destination
-- report counts or clusters of held, discarded, stale, or noisy capture instead of summarizing every low-signal item
-- preserve `IBX-*` as a permanent provenance ID even if the inbox line is deleted
+- report counts or clusters of held/discarded/noisy capture; do not summarize every item
+- preserve `IBX-*` as permanent provenance even after the inbox line is deleted
 
-Do not update `SPEC.md`, `STATUS.md`, `PLANS.md`, `research/`, or `decisions/` directly from raw inbox pressure.
-The orchestrator or operator-approved routing step owns promotion.
+Do not update truth docs, research, or decisions directly from raw inbox pressure. Promotion goes through the orchestrator or an operator-approved step.
 
 ## Promotion Discipline
 
-Promotion should be sparse.
-Do not mirror one evolving thought into every repo surface.
+Promote sparsely. Each layer receives only the part that belongs there, when it is ready.
 
-Raw shaping may stay in external capture, generic notes, off-Git capture packets, or `INBOX.md` while the thought is still forming.
-Repo artifacts are a refinery: each layer should receive only the part that belongs there, when it is ready.
+| Layer | Receives |
+| --- | --- |
+| `INBOX.md` | ephemeral routed capture |
+| `research/` | reusable exploration, evidence, framing, rejected paths, open questions |
+| `decisions/` | meaningful accepted choices and why the winning choice won |
+| `PLANS.md` | accepted future work that survived triage |
+| `SPEC.md` | concise durable product/system truth after the argument is settled |
+| `STATUS.md` | current operational reality |
+| `upstream-intake/` | upstream review, conflict, carry-forward, operator escalation |
+| git via `LOG-*` | canonical execution history |
 
-Use each layer for its distinct job:
+A `DEC-*` exists only when a real product, architecture, workflow, trust, upstream, or repo-operating choice has been made. `SPEC.md`, `STATUS.md`, and `PLANS.md` receive concise outcomes, not copied debate.
 
-- `INBOX.md`
-  - ephemeral routed capture
-- `research/`
-  - reusable exploration, evidence, framing, rejected paths, and open questions
-- `decisions/`
-  - meaningful accepted choices and why the winning choice won
-- `PLANS.md`
-  - accepted future work that survived triage
-- `SPEC.md`
-  - concise durable product or system truth after the argument is settled
-- `STATUS.md`
-  - current operational reality
-- `upstream-intake/`
-  - upstream review, upstream conflict, carry-forward, and operator escalation for upstream-related choices
-- git commit history via `commit: LOG-*`
-  - canonical execution history, not truth, decision, plan, or research mirrors
-
-A research memo may remain research forever.
-A decision record should exist only when a real product, architecture, workflow, trust, upstream, or repo-operating choice has been made.
-`SPEC.md`, `STATUS.md`, and `PLANS.md` should receive concise outcomes, not copied debate.
-
-One task may touch multiple layers, but each touched layer must have its own distinct job.
+One task may touch multiple layers, but each layer must receive distinct information.
 
 ## Orchestrator Routing Ladder
 
-When new work arrives, the orchestrator should classify it in this order:
+Classify in this order:
 
-1. Is this untriaged capture?
-   - Route to `INBOX.md`.
-2. Is this recurring upstream review?
-   - Route to `upstream-intake/`.
-3. Is this durable truth about what the project is?
-   - Route to `SPEC.md`.
-4. Is this current operational reality?
-   - Route to `STATUS.md`.
-5. Is this accepted future direction?
-   - Route to `PLANS.md`.
-6. Is this reusable exploration or horizon-expansion work?
-   - Route to `research/`.
-7. Is this a meaningful decision with rationale?
-   - Route to `decisions/`.
-8. Is this implementation or execution that should land in git history?
-   - Route to a compliant commit-backed `LOG-*` record.
-
-One task may legitimately touch multiple layers. For example:
-
-- a research session can create `RSH-*` plus a committed `LOG-*`
-- a product choice can create `DEC-*` and update `PLANS.md`
-- implementation progress can create a committed `LOG-*` and update `STATUS.md`
-
-Touch multiple layers only when each layer receives distinct information.
-Do not copy the same evolving thought into research, decision, plan, spec, status, upstream, and execution surfaces.
+1. Untriaged capture → `INBOX.md`
+2. Recurring upstream review → `upstream-intake/`
+3. Durable truth → `SPEC.md`
+4. Current operational reality → `STATUS.md`
+5. Accepted future direction → `PLANS.md`
+6. Reusable research → `research/`
+7. Meaningful decision → `decisions/`
+8. Execution history → `commit: LOG-*`
 
 ## Write Rules
 
-- `SPEC.md`, `STATUS.md`, and `PLANS.md` should be updated only by the operator or orchestrator.
-- `INBOX.md` is an aggressive scratch disk. Purge entries once they are reflected elsewhere or explicitly discarded.
-- Daily inbox review should reduce pressure by clustering, routing, holding, or purging capture; it should not generate a larger digest by default.
+- `SPEC.md`, `STATUS.md`, and `PLANS.md` are updated only by the operator or orchestrator.
+- `INBOX.md` is a scratch disk. Purge entries once reflected elsewhere or explicitly discarded.
+- Daily inbox review reduces pressure; it does not generate a larger digest by default.
 - `research/` keeps curated findings only.
-- `decisions/` is append-only by new decision file.
-- Routine execution history lives in git commit history through commit-backed `LOG-*` records.
-- Do not invent a parallel execution-history file layer.
-- If work produces no durable repo change, route only the durable outcome that belongs elsewhere or keep the raw trace Off-Git.
-- `upstream-intake/` should preserve its own paired internal-record and operator-brief workflow.
-- Truth docs should reflect the latest accepted state, not every intermediate thought.
+- `decisions/` is append-only by new file.
+- Execution history lives in git via `LOG-*`. Do not invent a parallel file layer.
+- `upstream-intake/` preserves its paired internal-record and operator-brief workflow.
+- Truth docs reflect the latest accepted state, not intermediate thoughts.
 
 ## Stable IDs
 
-This model assumes:
+| Prefix | Artifact type | Format |
+| --- | --- | --- |
+| `IBX-*` | Inbox capture | `IBX-YYYYMMDD-NNN` |
+| `RSH-*` | Research | `RSH-YYYYMMDD-NNN` |
+| `DEC-*` | Decision | `DEC-YYYYMMDD-NNN` |
+| `LOG-*` | Execution record | `LOG-YYYYMMDD-HHMMSS-<agent-suffix>` |
+| `UPS-*` | Upstream intake | `UPS-YYYYMMDD-NNN` |
 
-- `project-id` identifies the repo or workspace
-- `agent-id` identifies the conversation or actor lineage that originated the artifact or commit
-- subagents receive their own `agent-id`
-- Off-Git systems resolve runs, child lineage, messages, events, and commit history from `agent-id`
+File-backed `NNN` is per day, per artifact type. Claim the next available integer.
 
-Recommended prefixes:
-
-- `IBX-YYYYMMDD-NNN`
-- `RSH-YYYYMMDD-NNN`
-- `DEC-YYYYMMDD-NNN`
-- `LOG-YYYYMMDD-HHMMSS-<agent-suffix>`
-- `UPS-YYYYMMDD-NNN`
-
-File-backed artifact numbering is per day and per artifact type. Any agent may claim the next file-backed `NNN` by checking the least available value.
-
-File-backed stable-ID-bearing artifacts should open with:
+File-backed artifacts open with:
 
 - `Opened: YYYY-MM-DD HH-mm-ss KST`
 - `Recorded by agent: <agent-id>`
 
-Commit-backed `LOG-*` ids use this format:
-
-- `LOG-YYYYMMDD-HHMMSS-<agent-suffix>`
-- `<agent-suffix>` is the last up to 6 lowercase alphanumeric characters of the normalized `agent:` value
-- normalize `agent:` by lowercasing it and removing non-alphanumeric characters
-
-When claiming a new `LOG-*` id:
-
-- start from the current KST timestamp plus the derived agent suffix
-- scan the current branch and the default branch for existing `commit:` values
-- if the candidate id already exists, bump the timestamp forward by one second until it is unique
+`LOG-*` suffix: last up to 6 lowercase alphanumeric chars of `agent:` normalized (lowercased, non-alphanumeric stripped). Claim by starting from current KST second, scanning the current and default branches for duplicate `commit:` values, bumping forward until unique.
 
 ## Commit-Backed Execution Records
 
-After a repo adopts this system, every commit should include these trailers:
+Required trailers on every commit:
 
 - `project: <project-id>`
 - `agent: <agent-id>`
 - `role: orchestrator|worker|subagent|operator`
 - `commit: LOG-...[, LOG-...]`
 
-Optional trailer:
-
-- `artifacts: <artifact-id>[, <artifact-id>...]`
+Optional: `artifacts: <artifact-id>[, <artifact-id>...]`
 
 Rules:
 
-- `commit:` must include one or more `LOG-*` ids, comma-separated.
-- The first `LOG-*` in `commit:` is the commit's primary execution id.
-- Additional `LOG-*` ids mean the landed commit canonically absorbs earlier execution records whose separate commits will not remain separate landed history.
-- Every merge commit must mint its own primary `LOG-*`.
-- When child commits remain visible as landed history, mention child `LOG-*` ids in `notes:` instead of reusing them in `commit:`.
-- `--amend` and `rebase` should preserve existing `LOG-*` ids.
-- If cherry-pick relocates work and the original commit will not also land, keep the same primary `LOG-*`.
-- If both original and cherry-picked commits could land, the later commit must mint a new primary `LOG-*`; source `LOG-*` ids may be mentioned only in `notes:`.
-- If a collision is discovered before landing, the later branch renumbers before merge.
-- `artifacts:` is optional.
-- `artifacts:` may list more than one stable ID, comma-separated.
-- `artifacts:` must not include any `LOG-*`.
-- The commit side and the repo-artifact side should reinforce the same provenance graph.
+- `commit:` requires one or more `LOG-*`, comma-separated. First is primary.
+- Additional `LOG-*` in `commit:` mean the landed commit absorbs earlier execution records whose separate commits will not remain separate landed history.
+- Merge commits mint their own primary `LOG-*`.
+- Child `LOG-*` that remain visible as landed history go in `notes:`, not `commit:`.
+- `--amend` and `rebase` preserve existing `LOG-*` ids.
+- Cherry-pick: keep the same primary `LOG-*` if the original will not also land. Otherwise, the later commit mints a new primary; source `LOG-*` in `notes:` only.
+- Pre-land collision: renumber the later branch.
+- `artifacts:` must not contain `LOG-*`.
 
-Commit bodies must use this lowercase structure:
+Commit body structure:
 
 ```text
 <subject line>
@@ -341,8 +186,6 @@ rationale:
 - ...
 checks:
 - ...
-notes:
-- ...
 
 project: <project-id>
 agent: <agent-id>
@@ -353,74 +196,54 @@ artifacts: DEC-..., RSH-...
 
 Body rules:
 
-- the subject line must be non-empty
-- `timestamp:` is required and must be one line in KST
-- `changes:`, `rationale:`, and `checks:` are required
-- each required section must contain at least one `- ...` item
+- subject line non-empty
+- `timestamp:` required, one line, KST
+- `changes:`, `rationale:`, `checks:` required; each must have at least one `- ...` item
 - `checks:` may be `- none`
-- `notes:` is optional
+- `notes:` optional
 
 ## Commit-Time Enforcement
 
-Repos using this system must enforce these provenance rules both locally and remotely.
+Enforcement runs locally and in CI.
 
-Required minimum enforcement:
+Minimum checks:
 
-- reject normal commits whose primary `LOG-*` id was not registered by `scripts/new-commit-message.sh`
-- reject commits that do not include `project:`, `agent:`, `role:`, and `commit:`
+- reject normal commits whose primary `LOG-*` was not registered by `scripts/new-commit-message.sh`
+- reject commits missing `project:`, `agent:`, `role:`, `commit:`
 - reject roles outside `orchestrator|worker|subagent|operator`
-- reject malformed `commit:` values
-- reject malformed or empty `artifacts:` values when present
-- reject any `artifacts:` value that includes `LOG-*`
-- reject commits that do not include the required body keys and list items
-- reject duplicate `LOG-*` ids on the current branch or default branch
+- reject malformed `commit:` or `artifacts:` values
+- reject `LOG-*` inside `artifacts:`
+- reject commits missing required body keys or list items
+- reject duplicate `LOG-*` ids on current or default branch
 - allow explicit bootstrap or migration exceptions
 
-The goal is not perfect policy automation. The goal is to stop obviously non-compliant commits before they land.
+Required layers:
 
-Required enforcement layers:
+- `prepare-commit-msg` hook: reject non-generated normal commits
+- `commit-msg` hook: validate the contract before commit lands
+- CI: re-validate on push and pull request
 
-- local git hooks for fast feedback before the commit is created
-- a `prepare-commit-msg` hook that makes `git commit -m ...` and other non-generated normal commit flows fail
-- CI for remote re-validation on push or pull request
-
-Every landed commit on the default branch must satisfy the same contract regardless of whether it came from the CLI, a merge queue, a bot, or a web UI.
-If a landing path cannot produce compliant commit messages, the repo should not use that landing path.
+Every landed commit on the default branch must satisfy the contract regardless of origin (CLI, merge queue, bot, web UI).
 
 ## Off-Git Provenance
 
-Repo artifacts stay lightweight on purpose.
+In-repo provenance records: artifact identity, opened timestamp, recording agent, and commit-level `LOG-*` ids.
 
-In-repo provenance answers:
-
-- what file-backed artifact this is
-- when it was opened
-- which agent recorded it
-- which `LOG-*` execution ids belong to each commit
-
-The Off-Git runtime should answer:
-
-- which conversation or actor lineage the `agent-id` maps to
-- which exact run inside that lineage produced the commit or artifact
-- whether the agent was top-level or a subagent
-- which source events produced the artifact
-- how execution lineage maps across rebases, cherry-picks, merges, and absorbed `LOG-*` ids
+Off-Git runtime resolves: which conversation/lineage `agent-id` maps to, which run produced the commit/artifact, top-level vs subagent, which source events produced the artifact, and execution lineage across rebases, cherry-picks, merges, and absorbed `LOG-*` ids.
 
 ## Scaffold Rule
 
-`scaffold/` is a ready-to-copy repo skeleton, not a loose library of files to cherry-pick casually.
+`scaffold/` is a ready-to-copy skeleton. Its contents belong at the target repo root after adoption.
 
-Use it when you want a managed repo to share one canonical layout so humans and agents know exactly where work belongs.
-
-In this template, scaffold files live under `scaffold/`.
-After adoption, the scaffold contents belong at the target repo root.
-For example, `scaffold/records/` becomes `records/` in the adopted repo, and `scaffold/skills/repo-orchestrator/SKILL.md` becomes `skills/repo-orchestrator/SKILL.md`.
+- `scaffold/records/` → `records/`
+- `scaffold/skills/` → `skills/`
+- etc.
 
 ### `.gitignore`
 
-The template ships a minimal `.gitignore` baseline:
+Shipped baseline:
 
 - OS noise (`Thumbs.db`, `.DS_Store`)
 - commit-generator temp files (`.tmp_commit_msg_*`)
 
-Adopted repos should keep the baseline and extend it for their own tooling, build artifacts, and environment files. The `.gitignore` ships inside `scaffold/` and is copied to the target repo root during adoption.
+Adopted repos keep the baseline and extend it for their tooling, build artifacts, and environment files.
