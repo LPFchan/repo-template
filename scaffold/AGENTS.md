@@ -10,9 +10,20 @@
 - `records/PLANS.md`
 - `records/INBOX.md`
 - `skills/README.md`
-- `skills/commit-generator/SKILL.md` (before creating a commit)
 
-Before a repeatable workflow, read the relevant `skills/<name>/SKILL.md`. Before writing into an artifact directory, read its `README.md` and follow its prescriptive shape when it defines one.
+Before writing into an artifact directory, read its `README.md` and follow its prescriptive shape when it defines one.
+
+## Skills
+
+Load the skill before the trigger condition fires. Each skill defines the procedure; follow it.
+
+| Trigger | Skill |
+| --- | --- |
+| Before creating a normal commit | `skills/commit-generator/SKILL.md` |
+| Before any destructive file edit (replace, delete, rewrite) | `skills/clean-correction-gate/SKILL.md` |
+| When routing work or creating repo artifacts | `skills/repo-orchestrator/SKILL.md` |
+| When reviewing inbox pressure | `skills/daily-inbox-pressure-review/SKILL.md` |
+| When reviewing upstream changes | `skills/upstream-intake/SKILL.md` |
 
 ## Rules
 
@@ -30,7 +41,3 @@ Before a repeatable workflow, read the relevant `skills/<name>/SKILL.md`. Before
 - Do not turn an inbox review into a digest of every low-confidence idea. Report counts or clusters.
 - Do not write chatty transcripts where the repo expects normalized records.
 - Do not bypass commit provenance checks unless the commit is an explicit bootstrap or migration exception.
-
-## Skills
-
-`skills/<name>/SKILL.md` files are reusable procedures for bounded workflows. Keep them procedural; do not duplicate canonical policy from `records/REPO.md`.
