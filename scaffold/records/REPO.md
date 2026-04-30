@@ -1,6 +1,6 @@
 # Repo Operating Model
 
-**Template version: 1.0.1**
+**Template version: 1.0.2**
 
 This document is the canonical repo contract for repo-template-style repos.
 
@@ -415,3 +415,12 @@ Use it when you want a managed repo to share one canonical layout so humans and 
 In this template, scaffold files live under `scaffold/`.
 After adoption, the scaffold contents belong at the target repo root.
 For example, `scaffold/records/` becomes `records/` in the adopted repo, and `scaffold/skills/repo-orchestrator/SKILL.md` becomes `skills/repo-orchestrator/SKILL.md`.
+
+### `.gitignore`
+
+The template ships a minimal `.gitignore` baseline:
+
+- OS noise (`Thumbs.db`, `.DS_Store`)
+- commit-generator temp files (`.tmp_commit_msg_*`)
+
+Adopted repos should keep the baseline and extend it for their own tooling, build artifacts, and environment files. The `.gitignore` ships inside `scaffold/` and is copied to the target repo root during adoption.
