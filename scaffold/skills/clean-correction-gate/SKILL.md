@@ -48,14 +48,12 @@ When in doubt, treat the operation as destructive.
    - Use this shape:
 
 ```text
-destructive edit — please confirm
-
-removing:
+[path/to/file] - line [A] to [B] :
 """
 [existing content excerpt]
 """
 
-replacing with:
+replacing with :
 """
 [new content excerpt]
 """

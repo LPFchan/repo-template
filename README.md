@@ -6,7 +6,7 @@ A repo operating system for projects managed by one operator plus many agents. G
 
 Give your agent this prompt, pointing at the target repo:
 
-> Fetch the latest repo-template from `LPFchan/repo-template`. Copy `scaffold/` contents into the target repo root. Follow the canonical rules in `records/REPO.md`. Enable `upstream-intake/` only if the target repo tracks an upstream. Wire local hooks and CI enforcement. Seed at least one real artifact to verify routing boundaries.
+> Fetch the latest repo-template from `LPFchan/repo-template`. Copy `scaffold/` contents into the target repo root. Follow the canonical rules in `records/REPO.md`. Enable `upstream-intake/` only if the target repo tracks an upstream. Wire local hooks. Seed at least one real artifact to verify routing boundaries.
 
 ## Scaffold Map
 
@@ -60,7 +60,6 @@ Commit with `git commit -F <generated-file>`. Hand-written `git commit -m` is re
 
 - `.githooks/prepare-commit-msg` — rejects non-generated normal commits
 - `.githooks/commit-msg` — validates execution contract
-- `.github/workflows/commit-standards.yml` — CI re-validation on push and PR
 - Bootrap/migration commits are the only exception path
 
 Run `sh scripts/install-hooks.sh` to enable tracked hooks locally.
@@ -69,4 +68,4 @@ Run `sh scripts/install-hooks.sh` to enable tracked hooks locally.
 
 To upgrade an already-adopted repo to the current template contract:
 
-> This repo already uses repo-template. Fetch the latest from `LPFchan/repo-template`. Merge upstream policy into `records/REPO.md`, `AGENTS.md`, and `CLAUDE.md` verbatim. Merge hooks, scripts, and CI workflow. Do not paraphrase upstream policy. Preserve local extensions under an explicit `Local Divergence` section. Do not weaken existing enforcement.
+> This repo already uses repo-template. Fetch the latest from `LPFchan/repo-template`. Merge upstream policy into `records/REPO.md`, `AGENTS.md`, and `CLAUDE.md` verbatim. Merge hooks and scripts. Do not paraphrase upstream policy. Preserve local extensions under an explicit `Local Divergence` section. Do not weaken existing enforcement.

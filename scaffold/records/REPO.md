@@ -1,6 +1,6 @@
 # Repo Operating Model
 
-**Template version: 1.1.1**
+**Template version: 1.1.2**
 
 This document is the canonical repo contract for repo-template-style repos.
 
@@ -204,7 +204,7 @@ Body rules:
 
 ## Commit-Time Enforcement
 
-Enforcement runs locally and in CI.
+Enforcement runs locally.
 
 Minimum checks:
 
@@ -221,7 +221,6 @@ Required layers:
 
 - `prepare-commit-msg` hook: reject non-generated normal commits
 - `commit-msg` hook: validate the contract before commit lands
-- CI: re-validate on push and pull request
 
 Every landed commit on the default branch must satisfy the contract regardless of origin (CLI, merge queue, bot, web UI).
 
