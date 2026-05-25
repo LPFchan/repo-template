@@ -24,6 +24,12 @@ Conditional skills:
 - `upstream-intake/`
   - Companion workflow for the optional upstream-review module.
   - Include it when the adopted repo enables `records/upstream-intake/`; omit it when the repo does not track an upstream.
+- `sharpen-the-tip/`
+  - Iterative artifact refinement via neutral-subagent review loop.
+  - Include it when the repo uses structured review cycles for plans, specs, or other artifacts.
+- `prototype-mode/`
+  - Pre-MVP posture: break interfaces freely, skip bridge layers and migration scaffolding, refactor surgically.
+  - Include it when the repo contains greenfield or pre-production code.
 
 Keep skills procedural.
 Do not duplicate the canonical rules from `records/REPO.md` inside them.

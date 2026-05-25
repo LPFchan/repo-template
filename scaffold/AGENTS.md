@@ -24,6 +24,8 @@ Load the skill before the trigger condition fires. Each skill defines the proced
 | When routing work or creating repo artifacts | `skills/repo-orchestrator/SKILL.md` |
 | When reviewing inbox pressure | `skills/daily-inbox-pressure-review/SKILL.md` |
 | When reviewing upstream changes | `skills/upstream-intake/SKILL.md` |
+| When sharpening or iteratively refining an artifact | `skills/sharpen-the-tip/SKILL.md` |
+| When prototyping, greenfield building, or working pre-MVP | `skills/prototype-mode/SKILL.md` |
 
 ## Rules
 
