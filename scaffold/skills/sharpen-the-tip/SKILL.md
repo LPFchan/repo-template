@@ -1,5 +1,6 @@
 ---
 name: sharpen-the-tip
+version: 1.0
 description: Iteratively refine an artifact through a structured neutral-subagent review loop until convergence. Trigger on "sharpen", "sharpen the tip", "let's sharpen this", or similar phrasing.
 argument-hint: "Goal statement and target artifact (document, plan, spec, prompt, architecture design, etc.)"
 ---
@@ -22,7 +23,7 @@ This skill runs a neutral-review feedback loop. Every round: a fresh subagent re
 
 ## Core Rule
 
-Every round the artifact must become more internally consistent and more complete. No exception. There is no iteration cap.
+Every round the artifact must become more internally consistent and sharper against its goal. No exception. There is no iteration cap.
 
 ## Procedure
 
@@ -49,9 +50,13 @@ Spawn a new subagent every iteration. Never resume. Independence per round is wh
 >
 > Look for: structural gaps, internal contradictions, missing considerations, unclear or unstated assumptions, logical inconsistencies, scope blind spots, factual errors including misrepresentations of source documents, and anything that would cause this plan to fail or underperform in practice.
 >
-> Produce a numbered list of findings. For each: state the issue, where it appears, and why it matters. If you find nothing meaningful, say so explicitly with a brief explanation of your reasoning.
+> Prefer precision over completeness. A finding is only meaningful if it materially affects whether the artifact succeeds at its stated goal. Details that *could* be added but would not change outcomes are noise — do not report them. Adding things that don't sharpen the tip is just as harmful as missing a real issue.
+>
+> Produce a numbered list of findings. For each: state the issue, where it appears, and why it matters to the goal. If you find nothing meaningful, say so explicitly with a brief explanation of your reasoning.
 
 ### Step 2: Digest Findings
+
+Incorporate findings thoughtfully. The goal is to sharpen the artifact against its stated purpose — this may mean keeping, adding, **or removing** content. Do not mechanically accept every finding just because it came from the subagent. For each: does this change make the artifact more effective at the goal? If a finding would add bulk without improving clarity, precision, or actionability against the goal, reject it and escalate.
 
 For each finding:
 
@@ -97,7 +102,7 @@ Escalate to the operator when:
 ## Quality Bar
 
 - every subagent gets the full unabridged artifact, not a scoped view
-- every finding is either incorporated or escalated — never silently dropped
+- every finding is either incorporated, declined, or escalated when unsure — never silently dropped
 - every rewrite is a complete replacement, never a patch
 - convergence requires two independent confirmations (main agent + fresh subagent)
 - the conversation thread carries the full delta history per round
