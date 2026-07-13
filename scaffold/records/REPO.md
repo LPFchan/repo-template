@@ -1,6 +1,6 @@
 # Repo Operating Model
 
-**Template version: 1.1.3**
+**Template version: 1.1.4**
 
 This document is the canonical repo contract for repo-template-style repos.
 
@@ -114,7 +114,7 @@ One task may touch multiple layers, but each layer must receive distinct informa
 Classify in this order:
 
 1. Untriaged capture → `INBOX.md`
-2. Recurring upstream review → `upstream-intake/`
+2. Recurring upstream review → `upstream-intake/` *(only when the optional module is enabled; skip this rung otherwise)*
 3. Durable truth → `SPEC.md`
 4. Current operational reality → `STATUS.md`
 5. Accepted future direction → `PLANS.md`

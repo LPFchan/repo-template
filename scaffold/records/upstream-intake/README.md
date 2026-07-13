@@ -1,6 +1,6 @@
 # Upstream Intake
 
-This directory is the optional but recommended upstream-review module inside the scaffold.
+This directory is a purely optional upstream-review module inside the scaffold. It is opt-in: enable it only when a repo tracks an upstream. Omit the directory entirely otherwise — nothing in the baseline scaffold depends on it.
 
 Use it when a repo:
 
