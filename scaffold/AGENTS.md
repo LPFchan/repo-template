@@ -20,7 +20,7 @@ Load the skill before the trigger condition fires. Each skill defines the proced
 | Trigger | Skill |
 | --- | --- |
 | Before creating a normal commit | `skills/commit-generator/SKILL.md` |
-| Before any destructive file edit (replace, delete, rewrite) | `skills/clean-correction-gate/SKILL.md` |
+| Before replacing, deleting, or rewriting content that already exists | `skills/clean-correction/SKILL.md` |
 | When routing work or creating repo artifacts | `skills/repo-orchestrator/SKILL.md` |
 | When reviewing inbox pressure | `skills/daily-inbox-pressure-review/SKILL.md` |
 | When reviewing upstream changes *(only if the optional `records/upstream-intake/` module is enabled)* | `skills/upstream-intake/SKILL.md` |
