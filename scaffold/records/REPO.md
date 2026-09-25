@@ -226,7 +226,7 @@ Every landed commit on the default branch must satisfy the contract regardless o
 
 ## Pull Request Workflow
 
-Work may land on the default branch through short-lived pull requests instead of direct pushes. The loop: branch from the default branch, commit with the contract, push, open a PR, let the automated review bot review it, address findings, then squash merge and delete the branch. Branch commits may be incremental; the squash merge produces one contract-satisfying commit on the default branch. PR review comments are evidence, not authority — the operator decides what gets addressed.
+Work may land on the default branch through short-lived pull requests instead of direct pushes. The loop: branch from the default branch, commit with the contract, push, open a PR, let the automated review bot review it, address findings, then squash merge and delete the branch. Branch commits may be incremental; the squash merge produces one commit on the default branch. The squash commit message must be generated with `scripts/new-commit-message.sh` and validated before merging — GitHub's auto-generated squash message never satisfies the contract. Absorbed branch `LOG-*` ids are preserved off-Git per the Off-Git Provenance section. PR review comments are evidence, not authority — the operator decides what gets addressed.
 
 ## Off-Git Provenance
 
