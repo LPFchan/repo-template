@@ -56,7 +56,7 @@ done
 [ -n "$changes_file" ] || { echo "missing --changes-file" >&2; exit 1; }
 [ -f "$changes_file" ] || { echo "changes file not found: $changes_file" >&2; exit 1; }
 
-msg_file=$(mktemp)
+msg_file=$(mktemp -u)
 trap 'rm -f "$msg_file"' EXIT
 
 sh "$repo_root/scripts/new-commit-message.sh" \
