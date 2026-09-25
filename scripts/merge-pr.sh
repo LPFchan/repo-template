@@ -64,22 +64,33 @@ sh "$repo_root/scripts/new-commit-message.sh" \
   --project "$project" --output "$msg_file" >/dev/null
 
 # Replace the TODO skeleton sections with the supplied bodies.
-sections=$(cat "$changes_file")
-awk -v sections="$sections" '
+# Sections are passed via a file descriptor, not awk -v, so backslashes survive.
+awk '
   BEGIN { skip = 0 }
-  /^changes:$/ { print; printf "%s\n\n", sections; skip = 1; next }
+  /^changes:$/ {
+    print
+    while ((getline line < CHANGES_FILE) > 0) print line
+    print ""
+    skip = 1
+    next
+  }
   skip && /^project:/ { skip = 0; print; next }
   skip { next }
   { print }
-' "$msg_file" > "$msg_file.new" && mv "$msg_file.new" "$msg_file"
+' CHANGES_FILE="$changes_file" "$msg_file" > "$msg_file.new" && mv "$msg_file.new" "$msg_file"
 
 sh "$repo_root/scripts/check-commit-standards.sh" "$msg_file"
 
 merge_subject=$(head -1 "$msg_file")
 merge_body=$(tail -n +2 "$msg_file")
 
-gh pr merge "$pr" --repo "$(gh repo view --json nameWithOwner --jq .nameWithOwner)" \
-  --squash --delete-branch \
+# Resolve the target repo from this script's checkout, not the caller's cwd,
+# and pin the merge to the currently reviewed head commit.
+target_repo=$(git -C "$repo_root" remote get-url origin | sed 's/.*github.com[:/]//; s/\.git$//')
+head_sha=$(gh pr view "$pr" --repo "$target_repo" --json headRefOid --jq .headRefOid)
+
+gh pr merge "$pr" --repo "$target_repo" \
+  --squash --delete-branch --match-head-commit "$head_sha" \
   --subject "$merge_subject" --body "$merge_body"
 
 echo "Merged PR #$pr with contract-compliant squash message."
