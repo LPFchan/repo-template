@@ -56,6 +56,11 @@ done
 [ -n "$changes_file" ] || { echo "missing --changes-file" >&2; exit 1; }
 [ -f "$changes_file" ] || { echo "changes file not found: $changes_file" >&2; exit 1; }
 
+# Resolve the target repo and pin the reviewed head BEFORE building the
+# message, so there is no window where a new push gets silently merged.
+target_repo=$(git -C "$repo_root" remote get-url origin | sed 's/^git@[^:]*://; s|^https\?://[^/]*/||; s/\.git$//')
+head_sha=$(gh pr view "$pr" --repo "$target_repo" --json headRefOid --jq .headRefOid)
+
 msg_file=$(mktemp -u)
 trap 'rm -f "$msg_file"' EXIT
 
@@ -84,11 +89,8 @@ sh "$repo_root/scripts/check-commit-standards.sh" "$msg_file"
 merge_subject=$(head -1 "$msg_file")
 merge_body=$(tail -n +2 "$msg_file")
 
-# Resolve the target repo from this script's checkout, not the caller's cwd,
-# and pin the merge to the currently reviewed head commit.
-target_repo=$(git -C "$repo_root" remote get-url origin | sed 's/.*github.com[:/]//; s/\.git$//')
-head_sha=$(gh pr view "$pr" --repo "$target_repo" --json headRefOid --jq .headRefOid)
-
+# Merge pinned to the head SHA sampled above: any push after that sample
+# makes GitHub refuse the merge instead of landing unreviewed commits.
 gh pr merge "$pr" --repo "$target_repo" \
   --squash --delete-branch --match-head-commit "$head_sha" \
   --subject "$merge_subject" --body "$merge_body"
