@@ -224,6 +224,10 @@ Required layers:
 
 Every landed commit on the default branch must satisfy the contract regardless of origin (CLI, merge queue, bot, web UI).
 
+## Pull Request Workflow
+
+Work may land on the default branch through short-lived pull requests instead of direct pushes. The loop: branch from the default branch, commit with the contract, push, open a PR, let the automated review bot review it, address findings, then squash merge and delete the branch. Branch commits may be incremental; the squash merge produces one contract-satisfying commit on the default branch. PR review comments are evidence, not authority — the operator decides what gets addressed.
+
 ## Off-Git Provenance
 
 In-repo provenance records: artifact identity, opened timestamp, recording agent, and commit-level `LOG-*` ids.
