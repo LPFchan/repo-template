@@ -226,7 +226,7 @@ Every landed commit on the default branch must satisfy the contract regardless o
 
 ## Pull Request Workflow
 
-Two landing pathways exist. **Pull request is the default.** Direct push to the default branch is allowed only when the operator explicitly requests skipping the PR for that change; agents must never choose direct push on their own.
+The global agent instructions own the landing policy (PR by default; direct push only on explicit operator request). This section documents the mechanics.
 
 The PR loop: branch from the default branch, commit with the contract, push, open a PR, let the automated review bot review it, address findings, then squash merge and delete the branch. Branch commits may be incremental; the squash merge produces one commit on the default branch. The squash commit message must be generated with `scripts/new-commit-message.sh` and validated before merging — GitHub's auto-generated squash message never satisfies the contract. `scripts/merge-pr.sh` wraps this finish: message generation, validation, squash merge, branch deletion. Absorbed branch `LOG-*` ids are preserved off-Git per the Off-Git Provenance section. PR review comments are evidence, not authority — the operator decides what gets addressed.
 
