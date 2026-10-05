@@ -69,3 +69,16 @@ Run `sh scripts/install-hooks.sh` to enable tracked hooks locally.
 To upgrade an already-adopted repo to the current template contract:
 
 > This repo already uses repo-template. Fetch the latest from `LPFchan/repo-template`. Merge upstream policy into `records/REPO.md`, `AGENTS.md`, and `CLAUDE.md` verbatim. Merge hooks and scripts. Do not paraphrase upstream policy. Preserve local extensions under an explicit `Local Divergence` section. Do not weaken existing enforcement.
+
+## Template Sync Checks
+
+`scaffold/manifest.txt` lists template-owned paths. Upstream-intake guidance is
+managed file by file; project reports and additional files stay project-owned.
+`scaffold/seed-manifest.txt` supplies missing registers without replacing existing
+content. Keeping seeds separate also protects projects running an older sync
+script during their first upgrade.
+
+Run the regression suite with `python3 -m unittest discover -s tests -v`.
+It uses temporary local Git repositories and needs Bash, Git, and Python 3.
+Set `ADOPTED_REPO_UNDER_TEST` to an adopted checkout to additionally verify its
+installed sync script preserves its exact upstream-intake files.

@@ -92,54 +92,13 @@ while IFS= read -r line; do
     *)
       if ! cmp -s "$src_path" "$dst_path" 2>/dev/null; then
         mkdir -p "$(dirname "$dst_path")"
-        mv "$src_path" "$dst_path"
+        cp "$src_path" "$dst_path"
         chmod +x "$dst_path" 2>/dev/null || true
         changed=1
       fi
       ;;
   esac
 done < "$MANIFEST"
-
-# Managed files move from the private clone so self-updates replace the running
-# script inode rather than rewriting the shell's current input stream. Keep the
-# byte offset through the managed loop compatible with the v2.0.0 reader; its
-# first upgrade still uses an in-place copy (covered by the legacy fixture).
-#
-# The legacy file branch makes every copied file executable. Correct managed
-# Markdown modes after that loop, including on the first legacy-script upgrade.
-# Project-owned seeds and reports are outside this manifest and keep their modes.
-while IFS= read -r line; do
-  case "$line" in ''|\#*) continue ;; esac
-  entry=$(echo "$line" | sed 's/^ *//; s/ *$//')
-  src=${entry%% -> *}
-  dst=${entry##* -> }
-  case "$src" in
-    *.md)
-      if [ -x "$REPO_ROOT/$dst" ]; then
-        chmod a-x "$REPO_ROOT/$dst"
-        changed=1
-      fi
-      ;;
-  esac
-done < "$MANIFEST"
-
-# Registers belong to the adopted project once created. Keep seeds separate
-# from the managed manifest so the first run of an older sync script is safe.
-if [ -f "$SCAFFOLD/seed-manifest.txt" ]; then
-  while IFS= read -r line; do
-    case "$line" in ''|\#*) continue ;; esac
-    entry=$(echo "$line" | sed 's/^ *//; s/ *$//')
-    src=${entry%% -> *}
-    dst=${entry##* -> }
-    dst_path="$REPO_ROOT/$dst"
-    # Also preserve empty files, directories, and dangling symbolic links.
-    if [ ! -e "$dst_path" ] && [ ! -L "$dst_path" ]; then
-      mkdir -p "$(dirname "$dst_path")"
-      cp -p "$SCAFFOLD/$src" "$dst_path"
-      changed=1
-    fi
-  done < "$SCAFFOLD/seed-manifest.txt"
-fi
 
 if [ $changed = 1 ] && [ -f "$REPO_ROOT/records/REPO.md" ]; then
   if ! grep -q "Template version: $VERSION" "$REPO_ROOT/records/REPO.md"; then
