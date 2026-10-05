@@ -134,6 +134,313 @@ class TemplateSyncTests(unittest.TestCase):
                 snapshot[relative] = (mode, None)
         return snapshot
 
+    def assert_mode_only_diff(self, expected):
+        self.assertEqual(
+            set(run("git", "diff", "--summary", cwd=self.repo).splitlines()),
+            {f" mode change {0o100000 | old:o} => {0o100000 | new:o} {path}"
+             for path, (old, new) in expected.items()},
+        )
+        self.assertEqual(
+            set(run("git", "diff", "--numstat", cwd=self.repo).splitlines()),
+            {f"0\t0\t{path}" for path in expected},
+        )
+        self.assertEqual(run("git", "diff", "--cached", "--name-only", cwd=self.repo), "")
+
+    def assert_mode_sync_noop_after_commit(self):
+        self.checkpoint()
+        output = self.sync(checkpoint=False)
+        self.assertIn("SYNC-CHANGED=0", output)
+        self.assertIn("SYNC-VERSION=2.0.7", output)
+        self.assertEqual(run("git", "status", "--porcelain", cwd=self.repo), "")
+
+    def test_identical_shell_scripts_gain_execute_mode_from_nonexecutable_sources(self):
+        names = ("sync-from-template.sh", "new-commit-message.sh",
+                 "check-commit-standards.sh", "install-hooks.sh")
+        for name in names:
+            (self.scaffold / name).chmod(0o644)
+        if run("git", "status", "--porcelain", cwd=self.template):
+            commit_fixture(self.template)
+        self.sync()
+        for name in names:
+            target = self.repo / "scripts" / name
+            self.assertEqual(target.read_bytes(), (self.scaffold / name).read_bytes())
+            target.chmod(0o644)
+        self.checkpoint()
+
+        output = self.sync(checkpoint=False)
+        for name in names:
+            with self.subTest(script=name):
+                target = self.repo / "scripts" / name
+                self.assertEqual((self.scaffold / name).stat().st_mode & 0o777, 0o644)
+                self.assertEqual(target.stat().st_mode & 0o777, 0o755)
+                self.assertEqual(target.read_bytes(), (self.scaffold / name).read_bytes())
+        self.assert_mode_only_diff({f"scripts/{name}": (0o644, 0o755) for name in names})
+        self.assertIn("SYNC-CHANGED=1", output)
+        self.assertIn("SYNC-VERSION=2.0.7", output)
+        self.assert_mode_sync_noop_after_commit()
+
+    def test_failed_mode_only_shell_repair_preserves_file_and_version(self):
+        self.sync()
+        target = self.repo / "scripts/new-commit-message.sh"
+        original = target.read_bytes()
+        self.assertEqual(original, (self.scaffold / "new-commit-message.sh").read_bytes())
+        target.chmod(0o644)
+        policy = self.repo / "records/REPO.md"
+        policy.write_bytes(policy.read_bytes().replace(
+            b"**Template version: 2.0.7**", b"**Template version: 2.0.0**", 1))
+        self.checkpoint()
+        before = self.project_snapshot()
+        original_policy = policy.read_bytes()
+        binary = self.root / "fail-mode-chmod"
+        binary.mkdir()
+        shim = binary / "chmod"
+        shim.write_text(
+            "#!/bin/bash\nfor arg; do\n"
+            "  case \"$arg\" in *.template-sync.*) exit 73 ;; esac\n"
+            "done\n"
+            f"exec {shutil.which('chmod')} \"$@\"\n"
+        )
+        shim.chmod(0o755)
+
+        with mock.patch.dict(os.environ, {"PATH": f"{binary}:{os.environ['PATH']}"}):
+            with self.assertRaises(subprocess.CalledProcessError) as error:
+                self.sync(checkpoint=False)
+        self.assertEqual(error.exception.returncode, 73)
+        self.assertEqual(target.read_bytes(), original)
+        self.assertEqual(target.stat().st_mode & 0o777, 0o644)
+        self.assertEqual(policy.read_bytes(), original_policy)
+        self.assertNotIn("SYNC-VERSION=", error.exception.stdout)
+        self.assertEqual(list(self.repo.rglob("*.template-sync.*")), [])
+        self.assertEqual(self.project_snapshot(), before)
+        self.assertIn("SYNC-CHANGED=1", self.sync(checkpoint=False))
+        self.assertEqual(target.read_bytes(), original)
+        self.assertEqual(target.stat().st_mode & 0o777, 0o755)
+        self.assert_mode_sync_noop_after_commit()
+
+    def test_helper_and_ordinary_file_follow_source_execute_mode_both_directions(self):
+        paths = {"sync-preflight.py": "scripts/sync-preflight.py",
+                 "ordinary.data": "tools/ordinary.data"}
+        (self.scaffold / "ordinary.data").write_bytes(b"ordinary managed data\n")
+        with (self.scaffold / "manifest.txt").open("a") as stream:
+            stream.write("\nordinary.data -> tools/ordinary.data\n")
+        for source in paths:
+            (self.scaffold / source).chmod(0o644)
+        commit_fixture(self.template)
+        self.sync()
+        for source, destination in paths.items():
+            self.assertEqual((self.repo / destination).stat().st_mode & 0o777, 0o644)
+            self.assertEqual((self.repo / destination).read_bytes(),
+                             (self.scaffold / source).read_bytes())
+        self.checkpoint()
+
+        for old, new in ((0o644, 0o755), (0o755, 0o644)):
+            with self.subTest(source_mode=oct(new)):
+                for source, destination in paths.items():
+                    self.assertEqual((self.repo / destination).stat().st_mode & 0o777, old)
+                    (self.scaffold / source).chmod(new)
+                commit_fixture(self.template)
+                output = self.sync(checkpoint=False)
+                for source, destination in paths.items():
+                    self.assertEqual((self.repo / destination).stat().st_mode & 0o777, new)
+                    self.assertEqual((self.repo / destination).read_bytes(),
+                                     (self.scaffold / source).read_bytes())
+                self.assert_mode_only_diff({destination: (old, new)
+                                           for destination in paths.values()})
+                self.assertIn("SYNC-CHANGED=1", output)
+                self.assertIn("SYNC-VERSION=2.0.7", output)
+                self.assert_mode_sync_noop_after_commit()
+
+    def test_managed_markdown_loses_execute_mode_without_content_changes(self):
+        relative = Path("skills/README.md")
+        source, target = self.scaffold / relative, self.repo / relative
+        source.chmod(0o755)
+        commit_fixture(self.template)
+        self.sync()
+        target.chmod(0o755)
+        self.checkpoint()
+        self.assertEqual(target.read_bytes(), source.read_bytes())
+
+        output = self.sync(checkpoint=False)
+        self.assertEqual(source.stat().st_mode & 0o777, 0o755)
+        self.assertEqual(target.stat().st_mode & 0o777, 0o644)
+        self.assertEqual(target.read_bytes(), source.read_bytes())
+        self.assert_mode_only_diff({relative: (0o755, 0o644)})
+        self.assertIn("SYNC-CHANGED=1", output)
+        self.assertIn("SYNC-VERSION=2.0.7", output)
+        self.assert_mode_sync_noop_after_commit()
+
+    def test_recursive_hooks_follow_source_execute_mode_both_directions(self):
+        paths = (Path(".githooks/commit-msg"), Path(".githooks/nested/helper"))
+        nested = self.scaffold / paths[1]
+        nested.parent.mkdir()
+        nested.write_bytes(b"#!/bin/sh\nexit 0\n")
+        nested.chmod(0o755)
+        shutil.copytree(nested.parent, self.repo / ".githooks/nested")
+        commit_fixture(self.template)
+        self.sync()
+        self.checkpoint()
+
+        for old, new in ((0o755, 0o644), (0o644, 0o755)):
+            with self.subTest(source_mode=oct(new)):
+                for relative in paths:
+                    self.assertEqual((self.repo / relative).stat().st_mode & 0o777, old)
+                    (self.scaffold / relative).chmod(new)
+                commit_fixture(self.template)
+                output = self.sync(checkpoint=False)
+                for relative in paths:
+                    self.assertEqual((self.repo / relative).stat().st_mode & 0o777, new)
+                    self.assertEqual((self.repo / relative).read_bytes(),
+                                     (self.scaffold / relative).read_bytes())
+                self.assert_mode_only_diff({relative: (old, new) for relative in paths})
+                self.assertIn("SYNC-CHANGED=1", output)
+                self.assertIn("SYNC-VERSION=2.0.7", output)
+                self.assert_mode_sync_noop_after_commit()
+
+    def test_recursive_mapping_repairs_directory_modes_without_content_changes(self):
+        nested = self.scaffold / ".githooks/nested"
+        nested.mkdir()
+        (nested / "guide.txt").write_bytes(b"nested hook guidance\n")
+        shutil.copytree(nested, self.repo / ".githooks/nested")
+        commit_fixture(self.template)
+        self.sync()
+        self.checkpoint()
+        paths = (Path(".githooks"), Path(".githooks/nested"))
+        for relative in paths:
+            (self.repo / relative).chmod(0o700)
+        self.assertEqual(run("git", "status", "--porcelain", cwd=self.repo), "")
+
+        output = self.sync(checkpoint=False)
+        for relative in paths:
+            self.assertEqual((self.repo / relative).stat().st_mode & 0o777, 0o755)
+        self.assertEqual(run("git", "status", "--porcelain", cwd=self.repo), "")
+        self.assertIn("SYNC-CHANGED=1", output)
+        self.assertIn("SYNC-VERSION=2.0.7", output)
+        self.assert_mode_sync_noop_after_commit()
+
+    def test_internal_recursive_root_alias_is_idempotent_and_legacy_modes_are_repaired(self):
+        self.sync()
+        alias = self.repo / ".githooks"
+        referent = self.repo / "hook-store"
+        shutil.move(alias, referent)
+        alias.symlink_to("hook-store", target_is_directory=True)
+        self.checkpoint()
+        before = self.project_snapshot()
+        for _ in range(2):
+            self.assertIn("SYNC-CHANGED=0", self.sync(checkpoint=False))
+            self.assertTrue(alias.is_symlink())
+            self.assertEqual(os.readlink(alias), "hook-store")
+            self.assertEqual(self.project_snapshot(), before)
+            self.assertEqual(run("git", "status", "--porcelain", cwd=self.repo), "")
+
+        referent.chmod(0o700)
+        shutil.copyfile(ROOT / "tests/fixtures/sync-from-template-v2.0.0.sh", self.script)
+        self.checkpoint()
+        output = self.sync(checkpoint=False)
+        self.assertIn("SYNC-CHANGED=1", output)
+        self.assertIn("SYNC-VERSION=2.0.7", output)
+        self.assertTrue(alias.is_symlink())
+        self.assertEqual(os.readlink(alias), "hook-store")
+        self.assertEqual(referent.stat().st_mode & 0o777, 0o755)
+        for source in (self.scaffold / ".githooks").iterdir():
+            self.assertEqual((referent / source.name).read_bytes(), source.read_bytes())
+        self.assert_mode_sync_noop_after_commit()
+        self.assertTrue(alias.is_symlink())
+        self.assertEqual(os.readlink(alias), "hook-store")
+
+    def test_v200_first_upgrade_repairs_helper_ordinary_file_and_hook_modes(self):
+        paths = {"sync-preflight.py": "scripts/sync-preflight.py",
+                 "ordinary.data": "tools/ordinary.data",
+                 ".githooks/commit-msg": ".githooks/commit-msg"}
+        (self.scaffold / "ordinary.data").write_bytes(b"ordinary managed data\n")
+        with (self.scaffold / "manifest.txt").open("a") as stream:
+            stream.write("\nordinary.data -> tools/ordinary.data\n")
+        for source in paths:
+            (self.scaffold / source).chmod(0o644)
+        commit_fixture(self.template)
+        hook = self.repo / ".githooks/commit-msg"
+        self.assertEqual(hook.stat().st_mode & 0o777, 0o755)
+        self.assertEqual(hook.read_bytes(), (self.scaffold / ".githooks/commit-msg").read_bytes())
+        shutil.copyfile(ROOT / "tests/fixtures/sync-from-template-v2.0.0.sh", self.script)
+
+        output = self.sync()
+        self.assertIn("SYNC-CHANGED=1", output)
+        self.assertIn("SYNC-VERSION=2.0.7", output)
+        self.assertEqual(self.script.read_bytes(),
+                         (self.scaffold / "sync-from-template.sh").read_bytes())
+        self.assertEqual(self.script.stat().st_mode & 0o777, 0o755)
+        for source, destination in paths.items():
+            with self.subTest(path=destination):
+                self.assertEqual((self.repo / destination).stat().st_mode & 0o777, 0o644)
+                self.assertEqual((self.repo / destination).read_bytes(),
+                                 (self.scaffold / source).read_bytes())
+        self.assertEqual(run("git", "diff", "--summary", "--", ".githooks/commit-msg",
+                             cwd=self.repo), " mode change 100755 => 100644 .githooks/commit-msg\n")
+        self.assertEqual(run("git", "diff", "--numstat", "--", ".githooks/commit-msg",
+                             cwd=self.repo), "0\t0\t.githooks/commit-msg\n")
+        self.assert_mode_sync_noop_after_commit()
+
+    def test_v200_replaces_recursive_child_alias_without_modifying_its_referent(self):
+        source = self.scaffold / ".githooks/nested"
+        source.mkdir()
+        (source / "helper").write_bytes(b"#!/bin/sh\nexit 0\n")
+        (source / "helper").chmod(0o755)
+        commit_fixture(self.template)
+        referent = self.repo / "local-hook-tools"
+        shutil.copytree(source, referent)
+        referent.chmod(0o700)
+        (referent / "helper").chmod(0o640)
+        original = (referent.stat().st_mode, (referent / "helper").stat().st_mode,
+                    (referent / "helper").read_bytes())
+        alias = self.repo / ".githooks/nested"
+        alias.symlink_to("../local-hook-tools", target_is_directory=True)
+        self.assertEqual(run("diff", "-qr", str(self.scaffold / ".githooks"),
+                             str(self.repo / ".githooks"), cwd=self.repo), "")
+        shutil.copyfile(ROOT / "tests/fixtures/sync-from-template-v2.0.0.sh", self.script)
+        self.checkpoint()
+
+        self.assertIn("SYNC-CHANGED=1", self.sync(checkpoint=False))
+        self.assertFalse(alias.is_symlink())
+        self.assertEqual(alias.stat().st_mode & 0o777, 0o755)
+        self.assertEqual((alias / "helper").stat().st_mode & 0o777, 0o755)
+        self.assertEqual((alias / "helper").read_bytes(), (source / "helper").read_bytes())
+        self.assertEqual((referent.stat().st_mode, (referent / "helper").stat().st_mode,
+                          (referent / "helper").read_bytes()), original)
+        self.assertEqual(run("git", "diff", "--", "local-hook-tools", cwd=self.repo), "")
+        self.assert_mode_sync_noop_after_commit()
+        self.assertEqual((referent.stat().st_mode, (referent / "helper").stat().st_mode,
+                          (referent / "helper").read_bytes()), original)
+
+    def test_v200_replaces_flat_file_alias_without_modifying_its_referent(self):
+        source = self.scaffold / "ordinary.data"
+        source.write_bytes(b"ordinary managed data\n")
+        source.chmod(0o644)
+        with (self.scaffold / "manifest.txt").open("a") as stream:
+            stream.write("\nordinary.data -> tools/ordinary.data\n")
+        commit_fixture(self.template)
+        referent = self.repo / "local-data.bin"
+        referent.write_bytes(source.read_bytes())
+        referent.chmod(0o750)
+        original = (referent.stat().st_ino, referent.stat().st_mode, referent.read_bytes())
+        alias = self.repo / "tools/ordinary.data"
+        alias.parent.mkdir()
+        alias.symlink_to("../local-data.bin")
+        self.assertEqual(alias.read_bytes(), source.read_bytes())
+        shutil.copyfile(ROOT / "tests/fixtures/sync-from-template-v2.0.0.sh", self.script)
+        self.checkpoint()
+
+        self.assertIn("SYNC-CHANGED=1", self.sync(checkpoint=False))
+        self.assertFalse(alias.is_symlink())
+        self.assertEqual(alias.stat().st_mode & 0o777, 0o644)
+        self.assertEqual(alias.read_bytes(), source.read_bytes())
+        self.assertNotEqual(alias.stat().st_ino, referent.stat().st_ino)
+        self.assertEqual((referent.stat().st_ino, referent.stat().st_mode,
+                          referent.read_bytes()), original)
+        self.assertEqual(run("git", "diff", "--", "local-data.bin", cwd=self.repo), "")
+        self.assertEqual(list(self.repo.rglob("*.template-sync.*")), [])
+        self.assert_mode_sync_noop_after_commit()
+        self.assertEqual((referent.stat().st_ino, referent.stat().st_mode,
+                          referent.read_bytes()), original)
+
     def test_skill_manifest_explicitly_lists_every_shipped_file(self):
         mappings = [line.split(" -> ")
                     for line in (self.scaffold / "manifest.txt").read_text().splitlines()
@@ -217,14 +524,14 @@ class TemplateSyncTests(unittest.TestCase):
                             if line.startswith("**Template version:"))
 
         before = self.project_snapshot()
-        for version in ("1.99.99", "2.0.0", "2.0.1", "2.0.2", "2.0.3", "2.0.4", "2.0.5", "2.0", "unknown"):
+        for version in ("1.99.99", "2.0.0", "2.0.1", "2.0.2", "2.0.3", "2.0.4", "2.0.5", "2.0.6", "2.0", "unknown"):
             with self.subTest(version=version):
                 version_file.write_text(original.replace(version_line,
                                                          f"**Template version: {version}**"))
                 commit_fixture(self.template)
                 with self.assertRaises(subprocess.CalledProcessError) as error:
                     self.sync()
-                self.assertIn("minimum is 2.0.6", error.exception.stderr)
+                self.assertIn("minimum is 2.0.7", error.exception.stderr)
                 self.assertEqual(self.project_snapshot(), before)
                 self.assertEqual(list(self.repo.rglob("*.template-sync.*")), [])
 
@@ -287,7 +594,7 @@ class TemplateSyncTests(unittest.TestCase):
         original = version_file.read_text()
         version_line = next(line for line in original.splitlines()
                             if line.startswith("**Template version:"))
-        for version in ("2.0.6", "2.0.10", "2.1.0", "3.0.0"):
+        for version in ("2.0.7", "2.0.10", "2.1.0", "3.0.0"):
             with self.subTest(version=version):
                 content = original.replace(version_line, f"**Template version: {version}**")
                 if version_file.read_text() != content:
@@ -304,11 +611,11 @@ class TemplateSyncTests(unittest.TestCase):
         source = version_file.read_text()
         version_line = next(line for line in source.splitlines()
                             if line.startswith("**Template version:"))
-        if version_line != "**Template version: 2.0.6**":
-            version_file.write_text(source.replace(version_line, "**Template version: 2.0.6**"))
+        if version_line != "**Template version: 2.0.7**":
+            version_file.write_text(source.replace(version_line, "**Template version: 2.0.7**"))
             commit_fixture(self.template)
         policy = self.repo / "records/REPO.md"
-        for old_version in ("2.0.0", "2.0.60"):
+        for old_version in ("2.0.0", "2.0.70"):
             with self.subTest(old_version=old_version):
                 before = (f"# Local policy\r\n\r\n**Template version: {old_version}**\r\n"
                           f"\r\nRetain prose mentioning Template version: {old_version}.\r\n"
@@ -317,7 +624,7 @@ class TemplateSyncTests(unittest.TestCase):
                 policy.chmod(0o640)
                 self.assertIn("SYNC-CHANGED=1", self.sync())
                 after = before.replace(f"**Template version: {old_version}**".encode(),
-                                       b"**Template version: 2.0.6**", 1)
+                                       b"**Template version: 2.0.7**", 1)
                 self.assertEqual(policy.read_bytes(), after)
                 self.assertEqual(policy.stat().st_mode & 0o777, 0o640)
                 self.assert_preserved(expected)
@@ -363,8 +670,8 @@ class TemplateSyncTests(unittest.TestCase):
         self.sync()
         policy = self.repo / "records/REPO.md"
         examples = (
-            ("2.0.0", b"## Local Divergence\n```md\n**Template version: 2.0.6**\n```\n"),
-            ("2.0.6", b"## Local Divergence\n**Template version: 2.0.0**\n"),
+            ("2.0.0", b"## Local Divergence\n```md\n**Template version: 2.0.7**\n```\n"),
+            ("2.0.7", b"## Local Divergence\n**Template version: 2.0.0**\n"),
             ("2.0.0", b"## Local Divergence\n**Template version: 2.0.1**\n"
                        b"**Template version: 2.0.2**\n"),
         )
@@ -374,15 +681,15 @@ class TemplateSyncTests(unittest.TestCase):
                 policy.write_bytes(before)
                 policy.chmod(0o640)
                 output = self.sync()
-                self.assertIn(f"SYNC-CHANGED={int(current != '2.0.6')}", output)
+                self.assertIn(f"SYNC-CHANGED={int(current != '2.0.7')}", output)
                 self.assertEqual(policy.read_bytes(), before.replace(
-                    f"**Template version: {current}**".encode(), b"**Template version: 2.0.6**", 1))
+                    f"**Template version: {current}**".encode(), b"**Template version: 2.0.7**", 1))
                 self.assertEqual(policy.stat().st_mode & 0o777, 0o640)
         policy.write_bytes(b"# Local policy\n```\n**Template version: 2.0.1**\n```\n"
                            b"**Template version: 2.0.0**\n## Local\n")
         self.sync()
         self.assertEqual(policy.read_bytes(), b"# Local policy\n```\n**Template version: 2.0.1**\n```\n"
-                                             b"**Template version: 2.0.6**\n## Local\n")
+                                             b"**Template version: 2.0.7**\n## Local\n")
 
     def test_resolved_destinations_cannot_escape_repository(self):
         self.sync()
@@ -432,6 +739,38 @@ class TemplateSyncTests(unittest.TestCase):
                     self.assertEqual(self.project_snapshot(), before)
                     target.write_bytes(original)
                     run("git", "reset", "-q", "HEAD", "--", relative, cwd=self.repo)
+
+    def test_direct_sync_refuses_staged_and_unstaged_managed_execute_mode_changes(self):
+        self.sync()
+        self.checkpoint()
+        for relative in ("scripts/sync-from-template.sh", "scripts/sync-preflight.py",
+                         "skills/commit-generator/SKILL.md", ".githooks/commit-msg"):
+            target = self.repo / relative
+            original = target.read_bytes()
+            original_mode = target.stat().st_mode & 0o777
+            for kind in ("unstaged", "staged"):
+                with self.subTest(path=relative, kind=kind):
+                    target.chmod(original_mode ^ 0o111)
+                    if kind == "staged":
+                        run("git", "add", relative, cwd=self.repo)
+                    before = self.project_snapshot()
+                    diff_args = ("--cached",) if kind == "staged" else ()
+                    summary = run("git", "diff", *diff_args, "--summary", cwd=self.repo)
+                    self.assertIn("mode change", summary)
+                    self.assertEqual(run("git", "diff", *diff_args, "--numstat",
+                                         cwd=self.repo), f"0\t0\t{relative}\n")
+                    with self.assertRaises(subprocess.CalledProcessError) as error:
+                        self.sync(checkpoint=False)
+                    self.assertIn("uncommitted sync destination", error.exception.stderr)
+                    self.assertIn(relative, error.exception.stderr)
+                    self.assertEqual(self.project_snapshot(), before)
+                    self.assertEqual(target.read_bytes(), original)
+                    self.assertEqual(target.stat().st_mode & 0o777, original_mode ^ 0o111)
+                    self.assertEqual(run("git", "diff", *diff_args, "--summary",
+                                         cwd=self.repo), summary)
+                    run("git", "restore", "--staged", "--worktree", "--", relative,
+                        cwd=self.repo)
+                    self.assertEqual(target.stat().st_mode & 0o777, original_mode)
 
     def test_existing_skill_parent_symlink_cannot_write_external_data(self):
         self.sync()
