@@ -1,0 +1,19 @@
+name: template-sync-tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  template-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check sync syntax
+        run: bash -n scaffold/sync-from-template.sh
+      - name: Test template ownership and upgrades
+        run: python3 -m unittest discover -s tests -v

@@ -1,0 +1,7 @@
+# Project-owned bootstrap files: copy only when the destination does not exist.
+# Same source -> destination syntax as manifest.txt. Files only; no directory sync.
+# Keep these out of manifest.txt, which is also consumed by older sync scripts.
+
+records/upstream-intake/compatibility-watchlist.md -> records/upstream-intake/compatibility-watchlist.md
+records/upstream-intake/decision-carry-forward.md -> records/upstream-intake/decision-carry-forward.md
+records/upstream-intake/known-local-overrides.md -> records/upstream-intake/known-local-overrides.md

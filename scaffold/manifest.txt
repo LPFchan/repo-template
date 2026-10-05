@@ -2,19 +2,27 @@
 #
 # One entry per line: <scaffold-relative source> -> <repo-relative destination>
 # Lines starting with # are comments. Files and directories listed here are
-# TEMPLATE-MANAGED: scripts/sync-template.sh copies them verbatim into
+# TEMPLATE-MANAGED: scripts/sync-from-template.sh copies them verbatim into
 # adopted repos on every sync. Directories sync recursively; files that exist
 # in a repo's managed directory but not in the scaffold are deleted.
 #
 # Everything NOT listed here is repo-specific and is never touched by sync:
 # records/SPEC.md, records/STATUS.md, records/PLANS.md, records/INBOX.md,
 # records/decisions/, records/research/, and any content in AGENTS.md after
-# the <!-- template-managed:end --> marker.
+# the <!-- template-managed:end --> marker. Project-owned upstream reports and
+# registers are also preserved. Missing register seeds are listed separately in
+# seed-manifest.txt so older sync scripts can safely consume this manifest.
 
 AGENTS.md managed-section
 CLAUDE.md -> CLAUDE.md
 skills/ -> skills/
-records/upstream-intake/ -> records/upstream-intake/
+records/upstream-intake/README.md -> records/upstream-intake/README.md
+records/upstream-intake/intake-method.md -> records/upstream-intake/intake-method.md
+records/upstream-intake/weekly-upstream-intake-template.md -> records/upstream-intake/weekly-upstream-intake-template.md
+records/upstream-intake/operator-weekly-brief-template.md -> records/upstream-intake/operator-weekly-brief-template.md
+records/upstream-intake/reports/README.md -> records/upstream-intake/reports/README.md
+records/upstream-intake/reports/internal-records/README.md -> records/upstream-intake/reports/internal-records/README.md
+records/upstream-intake/reports/operator-briefs/README.md -> records/upstream-intake/reports/operator-briefs/README.md
 new-commit-message.sh -> scripts/new-commit-message.sh
 check-commit-standards.sh -> scripts/check-commit-standards.sh
 install-hooks.sh -> scripts/install-hooks.sh
