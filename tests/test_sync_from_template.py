@@ -55,9 +55,9 @@ class TemplateSyncTests(unittest.TestCase):
         self.repo = self.root / "adopted"
         self.repo.mkdir()
         run("git", "init", "-q", cwd=self.repo)
-        # Existing adopted projects already have these wholly managed trees.
-        # Leave them byte-identical: these tests isolate mixed-ownership files
-        # and do not require rsync for unrelated skills/hook directory updates.
+        # Existing adopted projects already have these baseline files.
+        # Keep the wholly managed hooks identical so mixed-ownership tests do
+        # not require rsync for unrelated hook directory updates.
         for directory in ("skills", ".githooks"):
             shutil.copytree(self.scaffold / directory, self.repo / directory)
         shutil.copyfile(self.scaffold / "AGENTS.md", self.repo / "AGENTS.md")
@@ -110,6 +110,81 @@ class TemplateSyncTests(unittest.TestCase):
         for path, data in expected.items():
             with self.subTest(path=path):
                 self.assertEqual((self.repo / path).read_bytes(), data)
+
+    def test_skill_manifest_explicitly_lists_every_shipped_file(self):
+        mappings = [line.split(" -> ")
+                    for line in (self.scaffold / "manifest.txt").read_text().splitlines()
+                    if line.startswith("skills/")]
+        shipped = {path.relative_to(self.scaffold).as_posix()
+                   for path in (self.scaffold / "skills").rglob("*") if path.is_file()}
+        self.assertTrue(shipped)
+        self.assertEqual({source for source, _ in mappings}, shipped)
+        self.assertEqual(len(mappings), len(shipped))
+        for source, destination in mappings:
+            self.assertEqual(source, destination)
+            self.assertFalse(source.endswith("/"), "skills have mixed ownership")
+
+    def check_project_skills_survive_sync(self, version):
+        expected = self.populate()
+        expected.update({
+            Path("skills/custom-crawler/SKILL.md"): b"project-specific crawling procedure\n",
+            Path("skills/custom-crawler/scripts/extract.py"): b"print('local helper')\n",
+            Path("skills/custom-crawler/scripts/__pycache__/extract.cpython-313.pyc"):
+                b"\x00\xffproject-generated cache\n",
+            Path("skills/custom-crawler/assets/nested/sample.bin"): b"\x00\xff\x01\n",
+            Path("skills/local-notes.md"): b"project-owned skill notes\n",
+        })
+        skill_files = [path.relative_to(self.scaffold)
+                       for path in (self.scaffold / "skills").rglob("*") if path.is_file()]
+        for path in skill_files:
+            self.write(path, b"outdated managed guidance\n")
+            if path.name == "SKILL.md":
+                expected[path.parent / "assets/local.bin"] = b"project helper asset\x00\xff"
+                expected[path.parent / "__pycache__/local.cpython-313.pyc"] = b"local cache\x00"
+        # Exercise missing managed-file installation as well as replacement.
+        (self.repo / "skills/README.md").unlink()
+        for path, data in expected.items():
+            self.write(path, data)
+            (self.repo / path).chmod(0o640)
+        helper = Path("skills/custom-crawler/scripts/extract.py")
+        (self.repo / helper).chmod(0o750)
+        modes = {path: (self.repo / path).stat().st_mode & 0o777 for path in expected}
+        if version != "current":
+            shutil.copyfile(ROOT / f"tests/fixtures/sync-from-template-v{version}.sh",
+                            self.script)
+
+        def assert_skills():
+            self.assert_preserved(expected)
+            for path, mode in modes.items():
+                self.assertEqual((self.repo / path).stat().st_mode & 0o777, mode)
+            for path in skill_files:
+                self.assertEqual((self.repo / path).read_bytes(),
+                                 (self.scaffold / path).read_bytes())
+                self.assertEqual((self.repo / path).stat().st_mode & 0o777, 0o644)
+
+        self.assertIn("SYNC-CHANGED=1", self.sync())
+        self.assertEqual(self.script.read_bytes(),
+                         (self.scaffold / "sync-from-template.sh").read_bytes())
+        assert_skills()
+        self.assertIn("SYNC-CHANGED=0", self.sync())
+        assert_skills()
+        for path in skill_files:
+            with (self.scaffold / path).open("ab") as stream:
+                stream.write(b"\nUpdated template skill guidance.\n")
+        commit_fixture(self.template)
+        self.assertIn("SYNC-CHANGED=1", self.sync())
+        assert_skills()
+        self.assertIn("SYNC-CHANGED=0", self.sync())
+        assert_skills()
+
+    def test_project_skills_survive_current_sync_and_managed_updates(self):
+        self.check_project_skills_survive_sync("current")
+
+    def test_project_skills_survive_v200_upgrade_and_managed_updates(self):
+        self.check_project_skills_survive_sync("2.0.0")
+
+    def test_project_skills_survive_v201_upgrade_and_managed_updates(self):
+        self.check_project_skills_survive_sync("2.0.1")
 
     def test_populated_records_survive_repeated_sync_and_guide_updates(self):
         expected = self.populate()

@@ -74,6 +74,10 @@ To upgrade an already-adopted repo to the current template contract:
 
 `scaffold/manifest.txt` lists template-owned paths. Upstream-intake guidance is
 managed file by file; project reports and additional files stay project-owned.
+Skill guidance is also managed file by file. Custom skills, helper assets, and
+generated caches remain project-owned, including additional files inside a
+template skill directory. New template skill assets must be listed explicitly
+in the manifest; the regression suite checks coverage of every shipped file.
 `scaffold/seed-manifest-v2.txt` supplies missing registers without replacing existing
 content. Keeping seeds separate also protects projects running an older sync
 script during their first upgrade. A v2.0.1 reader installs the new script first;

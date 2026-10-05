@@ -13,11 +13,17 @@
 # records/SPEC.md, records/STATUS.md, records/PLANS.md, records/INBOX.md,
 # records/decisions/, records/research/, and any content in AGENTS.md after
 # the <!-- template-managed:end --> marker. Project-owned upstream reports and
-# registers are also preserved. Missing register seeds are listed separately in
+# registers are also preserved, as are additional skills, helper assets, and
+# generated skill caches. Missing register seeds are listed separately in
 # seed-manifest-v2.txt so older sync scripts can safely consume this manifest.
 
 CLAUDE.md -> CLAUDE.md
-skills/ -> skills/
+skills/README.md -> skills/README.md
+skills/clean-correction/SKILL.md -> skills/clean-correction/SKILL.md
+skills/commit-generator/SKILL.md -> skills/commit-generator/SKILL.md
+skills/daily-inbox-pressure-review/SKILL.md -> skills/daily-inbox-pressure-review/SKILL.md
+skills/repo-orchestrator/SKILL.md -> skills/repo-orchestrator/SKILL.md
+skills/upstream-intake/SKILL.md -> skills/upstream-intake/SKILL.md
 records/upstream-intake/README.md -> records/upstream-intake/README.md
 records/upstream-intake/intake-method.md -> records/upstream-intake/intake-method.md
 records/upstream-intake/weekly-upstream-intake-template.md -> records/upstream-intake/weekly-upstream-intake-template.md
