@@ -1,8 +1,20 @@
 #!/bin/bash
-# Self-sync the manifest and AGENTS.md managed section; preserve project records.
-# The caller owns the commit. SYNC-CHANGED reports whether files changed.
-# Keep the v2.0.x managed-loop byte boundary stable for in-place legacy upgrades.
-#---------------------------------------------------------
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+#-------------------------------------------------------------------------
+# Preserve the v2.0.x managed-loop byte boundary.
 
 set -eu
 
@@ -18,60 +30,20 @@ SCAFFOLD="$TMP/template/scaffold"
 MANIFEST="$SCAFFOLD/manifest.txt"
 VERSION=$(sed -n 's/^\*\*Template version: \(.*\)\*\*/\1/p' "$SCAFFOLD/records/REPO.md" | head -1)
 [ -n "$VERSION" ] || { echo "could not read Template version" >&2; exit 1; }
+python3 -c 'import re,sys; v=sys.argv[1]; sys.exit(0 if re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", v) and tuple(map(int,v.split("."))) >= (2,0,6) else "Unsafe template version: "+v+"; minimum is 2.0.6")' "$VERSION"
+
+# Validate destinations, protect local changes, and render policy before writes.
+python3 "$SCAFFOLD/sync-preflight.py" "$REPO_ROOT" "$SCAFFOLD" "$TMP" "$VERSION"
 
 changed=0
 
-splice_agents() {
-  python3 - "$SCAFFOLD/AGENTS.md" "$REPO_ROOT/AGENTS.md" "$TMP/agents-merged.md" <<'PY'
-import sys
-import shutil
-
-scaffold_path, repo_path, out_path = sys.argv[1:4]
-END = "<!-- template-managed:end -->"
-LEGACY_TAIL = "## Repo-Specific Rules"
-
-scaffold = open(scaffold_path).read()
-repo = open(repo_path).read()
-
-if END not in scaffold:
-    sys.exit("scaffold AGENTS.md is missing the template-managed:end marker")
-
-managed = scaffold[: scaffold.index(END) + len(END)]
-
-if END in repo:
-    tail = repo[repo.index(END) + len(END) :]
-elif LEGACY_TAIL in repo:
-    tail = "\n\n" + repo[repo.index(LEGACY_TAIL) :]
-elif "## Code Review Rules" in repo:
-    idx = repo.index("## Code Review Rules")
-    end = repo.index("\n## ", idx + 1) if "\n## " in repo[idx + 1 :] else len(repo)
-    tail = repo[end:]
-else:
-    sys.exit(1)
-
-open(out_path, "w").write(managed + tail)
-shutil.copymode(repo_path, out_path)
-PY
-}
 
 while IFS= read -r line; do
   case "$line" in ''|\#*) continue ;; esac
   entry=$(echo "$line" | sed 's/^ *//; s/ *$//')
+  case "$entry" in ''|\#*) continue ;; esac
 
-  if [ "$entry" = "AGENTS.md managed-section" ]; then
-    [ -f "$REPO_ROOT/AGENTS.md" ] || continue
-    if splice_agents; then
-      if ! cmp -s "$TMP/agents-merged.md" "$REPO_ROOT/AGENTS.md"; then
-        stage=$(mktemp "$REPO_ROOT/AGENTS.md.template-sync.XXXXXX")
-        cp -p "$TMP/agents-merged.md" "$stage"
-        mv -f "$stage" "$REPO_ROOT/AGENTS.md"
-        changed=1
-      fi
-    else
-      echo "AGENTS.md has no template boundary; skipping managed-section sync" >&2
-    fi
-    continue
-  fi
+  [ "$entry" != "AGENTS.md managed-section" ] || continue
 
   src=${entry%% -> *}
   dst=${entry##* -> }
@@ -99,6 +71,13 @@ while IFS= read -r line; do
   esac
 done < "$MANIFEST"
 
+# An in-place v2.0.0 upgrade reaches this tail without the new header.
+# Its old reader has already copied managed files; render the remaining policy
+# atomically and fail on any error rather than advancing the recorded version.
+if [ ! -f "$TMP/preflight-ready" ]; then
+  python3 "$SCAFFOLD/sync-preflight.py" "$REPO_ROOT" "$SCAFFOLD" "$TMP" "$VERSION" --render-only
+fi
+
 # Each managed file is staged beside its destination before rename, so updates
 # replace the running script inode even when /tmp is on a different filesystem.
 # The header padding keeps the managed-loop byte boundary compatible with the
@@ -110,6 +89,7 @@ done < "$MANIFEST"
 while IFS= read -r line; do
   case "$line" in ''|\#*) continue ;; esac
   entry=$(echo "$line" | sed 's/^ *//; s/ *$//')
+  case "$entry" in ''|\#*) continue ;; esac
   src=${entry%% -> *}
   dst=${entry##* -> }
   case "$src" in
@@ -129,17 +109,13 @@ trap 'rm -rf "$TMP"; [ -z "$stage" ] || rm -f "$stage"' EXIT
 
 # Keep this out of the legacy manifest loop: old readers copy AGENTS in place.
 # Preserve the local mode as well as the tail when publishing the completed merge.
-if [ -f "$REPO_ROOT/AGENTS.md" ]; then
-  if splice_agents; then
-    if ! cmp -s "$TMP/agents-merged.md" "$REPO_ROOT/AGENTS.md"; then
-      stage=$(mktemp "$REPO_ROOT/AGENTS.md.template-sync.XXXXXX")
-      cp -p "$REPO_ROOT/AGENTS.md" "$stage"
-      cat "$TMP/agents-merged.md" > "$stage"
-      mv -f "$stage" "$REPO_ROOT/AGENTS.md"
-      changed=1
-    fi
-  else
-    echo "AGENTS.md has no template boundary; skipping managed-section sync" >&2
+if [ -f "$TMP/agents-merged.md" ]; then
+  if ! cmp -s "$TMP/agents-merged.md" "$REPO_ROOT/AGENTS.md"; then
+    stage=$(mktemp "$REPO_ROOT/AGENTS.md.template-sync.XXXXXX")
+    cp -p "$REPO_ROOT/AGENTS.md" "$stage"
+    cat "$TMP/agents-merged.md" > "$stage"
+    mv -f "$stage" "$REPO_ROOT/AGENTS.md"
+    changed=1
   fi
 fi
 
@@ -149,6 +125,7 @@ if [ -f "$SCAFFOLD/seed-manifest-v2.txt" ]; then
   while IFS= read -r line; do
     case "$line" in ''|\#*) continue ;; esac
     entry=$(echo "$line" | sed 's/^ *//; s/ *$//')
+    case "$entry" in ''|\#*) continue ;; esac
     src=${entry%% -> *}
     dst=${entry##* -> }
     dst_path="$REPO_ROOT/$dst"
@@ -188,9 +165,22 @@ PY_SEED
   done < "$SCAFFOLD/seed-manifest-v2.txt"
 fi
 
-if [ $changed = 1 ] && [ -f "$REPO_ROOT/records/REPO.md" ]; then
-  if ! grep -q "Template version: $VERSION" "$REPO_ROOT/records/REPO.md"; then
-    sed -i "s/\*\*Template version: [0-9.]*\*\*/**Template version: $VERSION**/" "$REPO_ROOT/records/REPO.md"
+# Workflow changes need separate review and permissions. Never copy them during
+# automatic sync; report drift so the operator can install a reviewed update.
+if ! cmp -s "$SCAFFOLD/template-sync.yml" "$REPO_ROOT/.github/workflows/template-sync.yml"; then
+  echo "Workflow update available: review and update .github/workflows/template-sync.yml separately." >&2
+  echo "SYNC-WORKFLOW-DRIFT=1"
+else
+  echo "SYNC-WORKFLOW-DRIFT=0"
+fi
+
+if [ -f "$TMP/repo-version.md" ]; then
+  if ! cmp -s "$TMP/repo-version.md" "$REPO_ROOT/records/REPO.md"; then
+    stage=$(mktemp "$REPO_ROOT/records/REPO.md.template-sync.XXXXXX")
+    cp -p "$REPO_ROOT/records/REPO.md" "$stage"
+    cat "$TMP/repo-version.md" > "$stage"
+    mv -f "$stage" "$REPO_ROOT/records/REPO.md"
+    changed=1
   fi
 fi
 

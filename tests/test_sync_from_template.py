@@ -55,9 +55,9 @@ class TemplateSyncTests(unittest.TestCase):
         self.repo = self.root / "adopted"
         self.repo.mkdir()
         run("git", "init", "-q", cwd=self.repo)
-        # Existing adopted projects already have these wholly managed trees.
-        # Leave them byte-identical: these tests isolate mixed-ownership files
-        # and do not require rsync for unrelated skills/hook directory updates.
+        # Existing adopted projects already have these baseline files.
+        # Keep the wholly managed hooks identical so mixed-ownership tests do
+        # not require rsync for unrelated hook directory updates.
         for directory in ("skills", ".githooks"):
             shutil.copytree(self.scaffold / directory, self.repo / directory)
         shutil.copyfile(self.scaffold / "AGENTS.md", self.repo / "AGENTS.md")
@@ -70,7 +70,15 @@ class TemplateSyncTests(unittest.TestCase):
     def script(self):
         return self.repo / "scripts/sync-from-template.sh"
 
-    def sync(self):
+    def checkpoint(self):
+        # These fixtures model committed adopted state and caller-owned commits
+        # between syncs. Dirty-data regressions explicitly disable this step.
+        if run("git", "status", "--porcelain", "--untracked-files=all", cwd=self.repo):
+            commit_fixture(self.repo)
+
+    def sync(self, checkpoint=True):
+        if checkpoint:
+            self.checkpoint()
         output = run(
             "bash", str(self.script), cwd=self.repo,
             env={**os.environ, "TEMPLATE_URL": self.template.as_uri()},
@@ -110,6 +118,469 @@ class TemplateSyncTests(unittest.TestCase):
         for path, data in expected.items():
             with self.subTest(path=path):
                 self.assertEqual((self.repo / path).read_bytes(), data)
+
+    def project_snapshot(self):
+        snapshot = {}
+        for path in self.repo.rglob("*"):
+            relative = path.relative_to(self.repo)
+            if ".git" in relative.parts:
+                continue
+            mode = path.lstat().st_mode
+            if path.is_symlink():
+                snapshot[relative] = (mode, os.readlink(path))
+            elif path.is_file():
+                snapshot[relative] = (mode, path.read_bytes())
+            else:
+                snapshot[relative] = (mode, None)
+        return snapshot
+
+    def test_skill_manifest_explicitly_lists_every_shipped_file(self):
+        mappings = [line.split(" -> ")
+                    for line in (self.scaffold / "manifest.txt").read_text().splitlines()
+                    if line.startswith("skills/")]
+        shipped = {path.relative_to(self.scaffold).as_posix()
+                   for path in (self.scaffold / "skills").rglob("*") if path.is_file()}
+        self.assertTrue(shipped)
+        self.assertEqual({source for source, _ in mappings}, shipped)
+        self.assertEqual(len(mappings), len(shipped))
+        for source, destination in mappings:
+            self.assertEqual(source, destination)
+            self.assertFalse(source.endswith("/"), "skills have mixed ownership")
+
+    def check_project_skills_survive_sync(self, version):
+        expected = self.populate()
+        expected.update({
+            Path("skills/custom-crawler/SKILL.md"): b"project-specific crawling procedure\n",
+            Path("skills/custom-crawler/scripts/extract.py"): b"print('local helper')\n",
+            Path("skills/custom-crawler/scripts/__pycache__/extract.cpython-313.pyc"):
+                b"\x00\xffproject-generated cache\n",
+            Path("skills/custom-crawler/assets/nested/sample.bin"): b"\x00\xff\x01\n",
+            Path("skills/local-notes.md"): b"project-owned skill notes\n",
+        })
+        skill_files = [path.relative_to(self.scaffold)
+                       for path in (self.scaffold / "skills").rglob("*") if path.is_file()]
+        for path in skill_files:
+            self.write(path, b"outdated managed guidance\n")
+            if path.name == "SKILL.md":
+                expected[path.parent / "assets/local.bin"] = b"project helper asset\x00\xff"
+                expected[path.parent / "__pycache__/local.cpython-313.pyc"] = b"local cache\x00"
+        # Exercise missing managed-file installation as well as replacement.
+        (self.repo / "skills/README.md").unlink()
+        for path, data in expected.items():
+            self.write(path, data)
+            (self.repo / path).chmod(0o640)
+        helper = Path("skills/custom-crawler/scripts/extract.py")
+        (self.repo / helper).chmod(0o750)
+        modes = {path: (self.repo / path).stat().st_mode & 0o777 for path in expected}
+        if version != "current":
+            shutil.copyfile(ROOT / f"tests/fixtures/sync-from-template-v{version}.sh",
+                            self.script)
+
+        def assert_skills():
+            self.assert_preserved(expected)
+            for path, mode in modes.items():
+                self.assertEqual((self.repo / path).stat().st_mode & 0o777, mode)
+            for path in skill_files:
+                self.assertEqual((self.repo / path).read_bytes(),
+                                 (self.scaffold / path).read_bytes())
+                self.assertEqual((self.repo / path).stat().st_mode & 0o777, 0o644)
+
+        self.assertIn("SYNC-CHANGED=1", self.sync())
+        self.assertEqual(self.script.read_bytes(),
+                         (self.scaffold / "sync-from-template.sh").read_bytes())
+        assert_skills()
+        self.assertIn("SYNC-CHANGED=0", self.sync())
+        assert_skills()
+        for path in skill_files:
+            with (self.scaffold / path).open("ab") as stream:
+                stream.write(b"\nUpdated template skill guidance.\n")
+        commit_fixture(self.template)
+        self.assertIn("SYNC-CHANGED=1", self.sync())
+        assert_skills()
+        self.assertIn("SYNC-CHANGED=0", self.sync())
+        assert_skills()
+
+    def test_project_skills_survive_current_sync_and_managed_updates(self):
+        self.check_project_skills_survive_sync("current")
+
+    def test_project_skills_survive_v200_upgrade_and_managed_updates(self):
+        self.check_project_skills_survive_sync("2.0.0")
+
+    def test_project_skills_survive_v201_upgrade_and_managed_updates(self):
+        self.check_project_skills_survive_sync("2.0.1")
+
+    def test_unsafe_template_version_is_rejected_before_project_writes(self):
+        self.populate()
+        version_file = self.scaffold / "records/REPO.md"
+        original = version_file.read_text()
+        version_line = next(line for line in original.splitlines()
+                            if line.startswith("**Template version:"))
+
+        before = self.project_snapshot()
+        for version in ("1.99.99", "2.0.0", "2.0.1", "2.0.2", "2.0.3", "2.0.4", "2.0.5", "2.0", "unknown"):
+            with self.subTest(version=version):
+                version_file.write_text(original.replace(version_line,
+                                                         f"**Template version: {version}**"))
+                commit_fixture(self.template)
+                with self.assertRaises(subprocess.CalledProcessError) as error:
+                    self.sync()
+                self.assertIn("minimum is 2.0.6", error.exception.stderr)
+                self.assertEqual(self.project_snapshot(), before)
+                self.assertEqual(list(self.repo.rglob("*.template-sync.*")), [])
+
+    def test_workflow_destinations_and_ancestors_are_rejected_before_writes(self):
+        self.populate()
+        self.write(Path(".github/workflows/local.yml"), b"project-reviewed workflow\n")
+        self.write(Path("skills/local/__pycache__/host.pyc"), b"host cache\x00")
+        (self.repo / "workflow-alias").symlink_to(".github/workflows", target_is_directory=True)
+        before = self.project_snapshot()
+        manifest = self.scaffold / "manifest.txt"
+        original = manifest.read_text()
+        mappings = (
+            "template-sync.yml -> .github/workflows/new.yml",
+            ".githooks/ -> .github/workflows/",
+            ".githooks/ -> .github/",
+            ".githooks/ -> ./",
+            "template-sync.yml -> ./.github/workflows/new.yml",
+            "template-sync.yml -> .github//workflows/new.yml",
+            "template-sync.yml -> x/../.github/workflows/new.yml",
+            ".githooks/ -> ./.github/",
+            "template-sync.yml -> workflow-alias/new.yml",
+            "template-sync.yml -> ../outside.yml",
+            "template-sync.yml -> /tmp/outside.yml",
+            ".github/workflows/new.yml",
+            ".github/workflows/",
+            "  .github/workflows/new.yml  ",
+        )
+        for mapping in mappings:
+            with self.subTest(mapping=mapping):
+                manifest.write_text(original + "\n" + mapping + "\n")
+                commit_fixture(self.template)
+                with self.assertRaises(subprocess.CalledProcessError) as error:
+                    self.sync()
+                self.assertIn("Refusing", error.exception.stderr)
+                self.assertEqual(self.project_snapshot(), before)
+
+    def test_indented_manifest_comments_and_blank_lines_are_ignored(self):
+        for name in ("manifest.txt", "seed-manifest-v2.txt"):
+            with (self.scaffold / name).open("a") as stream:
+                stream.write("\n   \n  # .github/workflows/comment.yml\n")
+        commit_fixture(self.template)
+        self.assertIn("SYNC-CHANGED=1", self.sync())
+        self.assertFalse((self.repo / ".github/workflows/comment.yml").exists())
+        self.assertIn("SYNC-CHANGED=0", self.sync())
+
+    def test_workflow_seed_is_rejected_before_any_managed_write(self):
+        self.populate()
+        before = self.project_snapshot()
+        manifest = self.scaffold / "seed-manifest-v2.txt"
+        with manifest.open("a") as stream:
+            stream.write("\ntemplate-sync.yml -> .github/workflows/new.yml\n")
+        commit_fixture(self.template)
+        with self.assertRaises(subprocess.CalledProcessError) as error:
+            self.sync()
+        self.assertIn("Refusing workflow destination", error.exception.stderr)
+        self.assertEqual(self.project_snapshot(), before)
+
+    def test_safe_template_versions_are_compared_numerically(self):
+        version_file = self.scaffold / "records/REPO.md"
+        original = version_file.read_text()
+        version_line = next(line for line in original.splitlines()
+                            if line.startswith("**Template version:"))
+        for version in ("2.0.6", "2.0.10", "2.1.0", "3.0.0"):
+            with self.subTest(version=version):
+                content = original.replace(version_line, f"**Template version: {version}**")
+                if version_file.read_text() != content:
+                    version_file.write_text(content)
+                    commit_fixture(self.template)
+                self.assertIn(f"SYNC-VERSION={version}", self.sync())
+
+    def test_version_only_update_is_exact_and_preserves_local_policy(self):
+        expected = self.populate()
+        self.write(Path("skills/local/__pycache__/host.pyc"), b"project host cache\x00")
+        expected[Path("skills/local/__pycache__/host.pyc")] = b"project host cache\x00"
+        self.sync()
+        version_file = self.scaffold / "records/REPO.md"
+        source = version_file.read_text()
+        version_line = next(line for line in source.splitlines()
+                            if line.startswith("**Template version:"))
+        if version_line != "**Template version: 2.0.6**":
+            version_file.write_text(source.replace(version_line, "**Template version: 2.0.6**"))
+            commit_fixture(self.template)
+        policy = self.repo / "records/REPO.md"
+        for old_version in ("2.0.0", "2.0.60"):
+            with self.subTest(old_version=old_version):
+                before = (f"# Local policy\r\n\r\n**Template version: {old_version}**\r\n"
+                          f"\r\nRetain prose mentioning Template version: {old_version}.\r\n"
+                          "## Local Divergence\r\nKeep local decisions.\r\n").encode()
+                policy.write_bytes(before)
+                policy.chmod(0o640)
+                self.assertIn("SYNC-CHANGED=1", self.sync())
+                after = before.replace(f"**Template version: {old_version}**".encode(),
+                                       b"**Template version: 2.0.6**", 1)
+                self.assertEqual(policy.read_bytes(), after)
+                self.assertEqual(policy.stat().st_mode & 0o777, 0o640)
+                self.assert_preserved(expected)
+                self.assertIn("SYNC-CHANGED=0", self.sync())
+                self.assertEqual(policy.read_bytes(), after)
+                self.assertEqual(policy.stat().st_mode & 0o777, 0o640)
+
+    def test_failed_version_replacement_preserves_policy_and_cleans_staging(self):
+        self.sync()
+        policy = self.repo / "records/REPO.md"
+        original = b"# Local policy\n**Template version: 2.0.0**\nKeep local policy.\n"
+        policy.write_bytes(original)
+        policy.chmod(0o600)
+        for command in ("cp", "cat", "mv"):
+            with self.subTest(command=command):
+                binary = self.root / f"fail-version-{command}"
+                binary.mkdir()
+                shim = binary / command
+                if command == "cat":
+                    pattern = "*/repo-version.md"
+                    failure = "printf partial; exit 73"
+                else:
+                    pattern = "*/records/REPO.md.template-sync.*"
+                    failure = 'printf partial > "$arg"; exit 73' if command == "cp" else "exit 73"
+                shim.write_text(
+                    "#!/bin/bash\nfor arg; do\n"
+                    f"  case \"$arg\" in {pattern}) {failure} ;; esac\n"
+                    "done\n"
+                    f"exec {shutil.which(command)} \"$@\"\n"
+                )
+                shim.chmod(0o755)
+                with mock.patch.dict(os.environ, {"PATH": f"{binary}:{os.environ['PATH']}"}):
+                    with self.assertRaises(subprocess.CalledProcessError):
+                        self.sync()
+                self.assertEqual(policy.read_bytes(), original)
+                self.assertEqual(policy.stat().st_mode & 0o777, 0o600)
+                self.assertEqual(list(self.repo.rglob("*.template-sync.*")), [])
+        self.assertIn("SYNC-CHANGED=1", self.sync())
+        self.assertEqual(policy.stat().st_mode & 0o777, 0o600)
+        self.assertIn("SYNC-CHANGED=0", self.sync())
+
+    def test_only_canonical_header_version_changes(self):
+        self.sync()
+        policy = self.repo / "records/REPO.md"
+        examples = (
+            ("2.0.0", b"## Local Divergence\n```md\n**Template version: 2.0.6**\n```\n"),
+            ("2.0.6", b"## Local Divergence\n**Template version: 2.0.0**\n"),
+            ("2.0.0", b"## Local Divergence\n**Template version: 2.0.1**\n"
+                       b"**Template version: 2.0.2**\n"),
+        )
+        for current, tail in examples:
+            with self.subTest(current=current, tail=tail):
+                before = f"# Local policy\n\n**Template version: {current}**\n\n".encode() + tail
+                policy.write_bytes(before)
+                policy.chmod(0o640)
+                output = self.sync()
+                self.assertIn(f"SYNC-CHANGED={int(current != '2.0.6')}", output)
+                self.assertEqual(policy.read_bytes(), before.replace(
+                    f"**Template version: {current}**".encode(), b"**Template version: 2.0.6**", 1))
+                self.assertEqual(policy.stat().st_mode & 0o777, 0o640)
+        policy.write_bytes(b"# Local policy\n```\n**Template version: 2.0.1**\n```\n"
+                           b"**Template version: 2.0.0**\n## Local\n")
+        self.sync()
+        self.assertEqual(policy.read_bytes(), b"# Local policy\n```\n**Template version: 2.0.1**\n```\n"
+                                             b"**Template version: 2.0.6**\n## Local\n")
+
+    def test_resolved_destinations_cannot_escape_repository(self):
+        self.sync()
+        outside = self.root / "outside"
+        outside.mkdir()
+        (outside / "keep.txt").write_bytes(b"external data\n")
+        (self.repo / "shared").symlink_to(outside, target_is_directory=True)
+        self.checkpoint()
+        before = self.project_snapshot()
+        for name, mapping in (
+            ("manifest.txt", "CLAUDE.md -> shared/guide.md"),
+            ("manifest.txt", ".githooks/ -> shared/hooks/"),
+            ("seed-manifest-v2.txt", "CLAUDE.md -> shared/seed.md"),
+        ):
+            with self.subTest(manifest=name, mapping=mapping):
+                manifest = self.scaffold / name
+                original = manifest.read_text()
+                manifest.write_text(original + "\n" + mapping + "\n")
+                commit_fixture(self.template)
+                with self.assertRaises(subprocess.CalledProcessError) as error:
+                    self.sync(checkpoint=False)
+                self.assertIn("outside the repository", error.exception.stderr)
+                self.assertEqual(self.project_snapshot(), before)
+                self.assertEqual(list(outside.iterdir()), [outside / "keep.txt"])
+                self.assertEqual((outside / "keep.txt").read_bytes(), b"external data\n")
+                manifest.write_text(original)
+                commit_fixture(self.template)
+
+    def test_direct_sync_refuses_staged_unstaged_and_deleted_managed_files(self):
+        self.sync()
+        self.checkpoint()
+        for relative in ("skills/commit-generator/SKILL.md", "AGENTS.md", "records/REPO.md"):
+            target = self.repo / relative
+            original = target.read_bytes()
+            for kind in ("unstaged", "staged", "deleted"):
+                with self.subTest(path=relative, kind=kind):
+                    if kind == "deleted":
+                        target.unlink()
+                    else:
+                        target.write_bytes(b"uncommitted managed content\n")
+                    if kind == "staged":
+                        run("git", "add", relative, cwd=self.repo)
+                    before = self.project_snapshot()
+                    with self.assertRaises(subprocess.CalledProcessError) as error:
+                        self.sync(checkpoint=False)
+                    self.assertIn("uncommitted sync destination", error.exception.stderr)
+                    self.assertEqual(self.project_snapshot(), before)
+                    target.write_bytes(original)
+                    run("git", "reset", "-q", "HEAD", "--", relative, cwd=self.repo)
+
+    def test_existing_skill_parent_symlink_cannot_write_external_data(self):
+        self.sync()
+        skill = self.repo / "skills/clean-correction"
+        external = self.root / "external-skill"
+        shutil.move(skill, external)
+        skill.symlink_to(external, target_is_directory=True)
+        self.checkpoint()
+        before = self.project_snapshot()
+        external_bytes = (external / "SKILL.md").read_bytes()
+        external_mode = (external / "SKILL.md").stat().st_mode
+        with self.assertRaises(subprocess.CalledProcessError) as error:
+            self.sync(checkpoint=False)
+        self.assertIn("outside the repository", error.exception.stderr)
+        self.assertEqual(self.project_snapshot(), before)
+        self.assertEqual((external / "SKILL.md").read_bytes(), external_bytes)
+        self.assertEqual((external / "SKILL.md").stat().st_mode, external_mode)
+
+    def test_direct_sync_refuses_untracked_and_ignored_managed_data(self):
+        self.sync()
+        self.write(Path(".gitignore"), b".githooks/ignored-cache/\n")
+        self.checkpoint()
+        for relative in (".githooks/local-note.txt", ".githooks/ignored-cache/host.bin"):
+            with self.subTest(path=relative):
+                self.write(Path(relative), b"local data\x00")
+                before = self.project_snapshot()
+                with self.assertRaises(subprocess.CalledProcessError) as error:
+                    self.sync(checkpoint=False)
+                self.assertIn("uncommitted sync destination", error.exception.stderr)
+                self.assertEqual(self.project_snapshot(), before)
+                (self.repo / relative).unlink()
+        source = self.scaffold / "local-guide.md"
+        source.write_text("template guidance\n")
+        with (self.scaffold / "manifest.txt").open("a") as stream:
+            stream.write("\nlocal-guide.md -> skills/new-local-guide.md\n")
+        commit_fixture(self.template)
+        self.write(Path("skills/new-local-guide.md"), b"existing untracked user draft\n")
+        before = self.project_snapshot()
+        with self.assertRaises(subprocess.CalledProcessError) as error:
+            self.sync(checkpoint=False)
+        self.assertIn("uncommitted sync destination", error.exception.stderr)
+        self.assertEqual(self.project_snapshot(), before)
+
+    def test_direct_sync_preserves_unrelated_dirty_records_caches_and_logs(self):
+        self.populate()
+        self.sync()
+        self.checkpoint()
+        expected = {
+            Path("records/SPEC.md"): b"uncommitted project truth\n",
+            UPSTREAM / REGISTERS[0]: b"uncommitted project register\n",
+            Path("skills/custom/__pycache__/host.pyc"): b"host cache\x00",
+            Path("skills/commit-generator/assets/local.bin"): b"custom skill asset\xff",
+            Path("sync.log"): b"legacy workflow output\n",
+        }
+        for path, data in expected.items():
+            self.write(path, data)
+        with (self.scaffold / "skills/README.md").open("a") as stream:
+            stream.write("\nNew template guidance.\n")
+        commit_fixture(self.template)
+        self.assertIn("SYNC-CHANGED=1", self.sync(checkpoint=False))
+        self.assert_preserved(expected)
+
+    def test_agents_render_failure_is_fatal_before_any_project_write(self):
+        self.populate()
+        self.sync()
+        template_agents = self.scaffold / "AGENTS.md"
+        original_template = template_agents.read_bytes()
+        for location in ("template", "project"):
+            with self.subTest(location=location):
+                if location == "template":
+                    template_agents.write_bytes(b"# No managed boundary\n")
+                    commit_fixture(self.template)
+                else:
+                    (self.repo / "AGENTS.md").write_bytes(b"# No recognized local boundary\n")
+                self.checkpoint()
+                before = self.project_snapshot()
+                with self.assertRaises(subprocess.CalledProcessError) as error:
+                    self.sync(checkpoint=False)
+                self.assertIn("AGENTS.md", error.exception.stderr)
+                self.assertNotIn("SYNC-VERSION=", error.exception.stdout)
+                self.assertNotIn("SYNC-CHANGED=", error.exception.stdout)
+                self.assertEqual(self.project_snapshot(), before)
+                if location == "template":
+                    template_agents.write_bytes(original_template)
+                    commit_fixture(self.template)
+
+    def test_agents_render_io_error_does_not_advance_version(self):
+        self.sync()
+        self.write(Path("records/REPO.md"), b"# Local policy\n**Template version: 2.0.0**\n")
+        self.checkpoint()
+        before = self.project_snapshot()
+        injection = self.root / "fail-agents-render"
+        injection.mkdir()
+        (injection / "sitecustomize.py").write_text(
+            "from pathlib import Path\n"
+            "original = Path.write_bytes\n"
+            "def write(self, data):\n"
+            "    if self.name == 'agents-merged.md':\n"
+            "        raise OSError('injected AGENTS rendering failure')\n"
+            "    return original(self, data)\n"
+            "Path.write_bytes = write\n"
+        )
+        with mock.patch.dict(os.environ, {"PYTHONPATH": str(injection), "PYTHONDONTWRITEBYTECODE": "1"}):
+            with self.assertRaises(subprocess.CalledProcessError) as error:
+                self.sync(checkpoint=False)
+        self.assertIn("injected AGENTS rendering failure", error.exception.stderr)
+        self.assertNotIn("SYNC-VERSION=", error.exception.stdout)
+        self.assertEqual(self.project_snapshot(), before)
+
+    def test_legacy_tee_workflow_can_upgrade_twice_with_worktree_log(self):
+        self.populate()
+        shutil.copyfile(ROOT / "tests/fixtures/sync-from-template-v2.0.0.sh", self.script)
+        self.checkpoint()
+
+        def legacy_step():
+            return run("bash", "-c", "set -euo pipefail; bash scripts/sync-from-template.sh | tee sync.log",
+                       cwd=self.repo, env={**os.environ, "TEMPLATE_URL": self.template.as_uri()})
+
+        self.assertIn("SYNC-CHANGED=1", legacy_step())
+        self.checkpoint()
+        with (self.scaffold / "skills/README.md").open("a") as stream:
+            stream.write("\nSecond upgrade guidance.\n")
+        commit_fixture(self.template)
+        self.assertIn("SYNC-CHANGED=1", legacy_step())
+        self.assertEqual((self.repo / "skills/README.md").read_bytes(),
+                         (self.scaffold / "skills/README.md").read_bytes())
+        self.checkpoint()
+        self.assertIn("SYNC-CHANGED=0", legacy_step())
+
+    def test_workflow_is_preserved_on_current_and_legacy_upgrades(self):
+        self.populate()
+        workflow = self.repo / ".github/workflows/template-sync.yml"
+        self.write(workflow.relative_to(self.repo), b"project-reviewed workflow\n")
+        workflow.chmod(0o640)
+        for version in ("current", "2.0.0", "2.0.1"):
+            with self.subTest(version=version):
+                source = (self.scaffold / "sync-from-template.sh" if version == "current"
+                          else ROOT / f"tests/fixtures/sync-from-template-v{version}.sh")
+                shutil.copyfile(source, self.script)
+                self.sync()
+                self.assertEqual(workflow.read_bytes(), b"project-reviewed workflow\n")
+                self.assertEqual(workflow.stat().st_mode & 0o777, 0o640)
+                repeated = self.sync()
+                self.assertIn("SYNC-CHANGED=0", repeated)
+                self.assertIn("SYNC-WORKFLOW-DRIFT=1", repeated)
+                self.assertEqual(workflow.read_bytes(), b"project-reviewed workflow\n")
+                self.assertEqual(workflow.stat().st_mode & 0o777, 0o640)
+        shutil.copyfile(self.scaffold / "template-sync.yml", workflow)
+        self.assertIn("SYNC-WORKFLOW-DRIFT=0", self.sync())
 
     def test_populated_records_survive_repeated_sync_and_guide_updates(self):
         expected = self.populate()

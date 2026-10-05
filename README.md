@@ -74,6 +74,10 @@ To upgrade an already-adopted repo to the current template contract:
 
 `scaffold/manifest.txt` lists template-owned paths. Upstream-intake guidance is
 managed file by file; project reports and additional files stay project-owned.
+Skill guidance is also managed file by file. Custom skills, helper assets, and
+generated caches remain project-owned, including additional files inside a
+template skill directory. New template skill assets must be listed explicitly
+in the manifest; the regression suite checks coverage of every shipped file.
 `scaffold/seed-manifest-v2.txt` supplies missing registers without replacing existing
 content. Keeping seeds separate also protects projects running an older sync
 script during their first upgrade. A v2.0.1 reader installs the new script first;
@@ -81,8 +85,44 @@ missing registers and managed AGENTS.md updates are applied by its next run
 through the atomic publication paths. Existing project data stays unchanged
 during that first legacy upgrade.
 
+The installed sync script requires template version 2.0.6 or newer and rejects
+older or malformed versions before changing project files. This floor covers
+both mixed skill ownership and the separate workflow maintenance boundary.
+The recorded template version updates even when only the upstream manifest or
+version changes. Only the canonical header marker is updated; later policy
+examples, local content, line endings, and permissions are preserved.
+
+The explicitly managed `sync-preflight.py` helper is loaded from the freshly
+cloned scaffold. Before the current reader writes project files, it checks both
+lexical and resolved destination containment, refuses uncommitted changes at
+managed destinations and their descendants, and renders AGENTS/policy updates.
+Staged, unstaged, untracked, and ignored data at those destinations must be
+committed or moved aside by the caller. Unrelated project records, custom skills,
+caches, and a legacy workflow's `sync.log` remain allowed and preserved. The
+caller owns the resulting commit and must commit managed changes before another
+direct sync. Rendering failures are fatal and do not advance the recorded version.
+Legacy readers retain their own pre-loop behavior during their initial upgrade;
+the full preflight applies when the newly installed script is invoked.
+
+`scaffold/template-sync.yml` is an adoption artifact. Install or upgrade it through
+a separately reviewed change to `.github/workflows/template-sync.yml`; it is
+outside the automatic sync manifest. Sync reports workflow drift without changing
+workflow files, keeping content updates within the standard `GITHUB_TOKEN`
+permissions. The installed script rejects managed or seed manifests that target
+workflow paths or their ancestors before changing project files. Older installed
+workflows need a separate reviewed upgrade to gain
+the generated commit provenance, temporary log handling, and bounded staging.
+The current workflow requires a clean checkout, preserves the scheduled or
+manually selected branch, and stages only its captured sync changes. Its logs,
+path list, and generated commit message stay under `RUNNER_TEMP`.
+Workflow commit provenance uses the unique canonical `Project id` in
+`records/SPEC.md`, accepting its plain or backtick-wrapped form. Missing, invalid,
+or ambiguous IDs stop the commit rather than falling back to a repository name.
+
 Run the regression suite with `python3 -m unittest discover -s tests -v`.
 It uses temporary local Git repositories and needs Bash, Git, and Python 3.
+Workflow tests execute the shipped shell blocks with local bare remotes, the real
+commit generator, validator, and hooks, including no-op and failure paths.
 Set `ADOPTED_REPO_UNDER_TEST` to an adopted checkout to additionally verify its
 installed sync script preserves its exact upstream-intake files.
 The cross-filesystem test uses the checkout's parent for its adopted repo. If
