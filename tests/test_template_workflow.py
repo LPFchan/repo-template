@@ -270,6 +270,27 @@ class TemplateWorkflowTests(unittest.TestCase):
         self.assertNotIn(".github/workflows/template-sync.yml", run(
             "git", "diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD", cwd=self.repo))
 
+    def test_version_only_change_is_committed_and_repeat_is_noop(self):
+        self.sync()
+        policy = self.repo / "records/REPO.md"
+        original = policy.read_text()
+        version_line = next(line for line in original.splitlines()
+                            if line.startswith("**Template version:"))
+        policy.write_text(original.replace(version_line, "**Template version: 2.0.0**"))
+        commit_fixture(self.repo)
+        run("git", "push", "-q", cwd=self.repo)
+        before = self.remote_head()
+        values = self.sync()
+        self.assertEqual(values["SYNC-CHANGED"], "1")
+        self.commit(values)
+        after = self.remote_head()
+        self.assertNotEqual(before, after)
+        self.assertEqual(policy.read_text(), original)
+        self.assertEqual(run("git", "diff-tree", "--no-commit-id", "--name-only", "-r",
+                             "HEAD", cwd=self.repo), "records/REPO.md\n")
+        self.assertEqual(self.sync()["SYNC-CHANGED"], "0")
+        self.assertEqual(self.remote_head(), after)
+
 
 if __name__ == "__main__":
     unittest.main()
