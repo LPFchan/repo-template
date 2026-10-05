@@ -1,4 +1,5 @@
-# Project-owned bootstrap files: copy only when the destination does not exist.
+# Project-owned bootstrap files: stage fully, then publish without overwriting.
+# The versioned name keeps legacy direct-copy consumers from creating partial seeds.
 # Same source -> destination syntax as manifest.txt. Files only; no directory sync.
 # Keep these out of manifest.txt, which is also consumed by older sync scripts.
 

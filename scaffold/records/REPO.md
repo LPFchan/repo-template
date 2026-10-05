@@ -1,6 +1,6 @@
 # Repo Operating Model
 
-**Template version: 2.0.1**
+**Template version: 2.0.2**
 
 This document is the canonical repo contract for repo-template-style repos.
 

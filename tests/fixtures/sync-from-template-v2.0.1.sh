@@ -1,8 +1,16 @@
 #!/bin/bash
-# Self-sync the manifest and AGENTS.md managed section; preserve project records.
-# The caller owns the commit. SYNC-CHANGED reports whether files changed.
-# Keep the v2.0.x managed-loop byte boundary stable for in-place legacy upgrades.
-#---------------------------------------------------------
+#
+# sync-from-template.sh — self-sync for an adopted repo.
+#
+# Run from anywhere inside an adopted repo. Fetches the latest repo-template
+# scaffold from GitHub, applies every entry in scaffold/manifest.txt
+# verbatim, splices the managed section of AGENTS.md (everything up to the
+# template-managed:end marker; content after it is preserved), and bumps the
+# Template version line when content changed.
+#
+# Exits 0 and prints SYNC-CHANGED=1 when files were modified, otherwise
+# prints SYNC-CHANGED=0. The caller (weekly GitHub Actions workflow, or an
+# operator) owns the commit.
 
 set -eu
 
@@ -10,8 +18,7 @@ REPO_ROOT=$(git rev-parse --show-toplevel)
 TEMPLATE_URL=${TEMPLATE_URL:-https://github.com/LPFchan/repo-template.git}
 
 TMP=$(mktemp -d /tmp/template-self-sync.XXXXXX)
-stage=
-trap 'rm -rf "$TMP"; [ -z "$stage" ] || rm -f "$stage"' EXIT
+trap 'rm -rf "$TMP"' EXIT
 
 git clone -q --depth 1 "$TEMPLATE_URL" "$TMP/template"
 SCAFFOLD="$TMP/template/scaffold"
@@ -24,7 +31,6 @@ changed=0
 splice_agents() {
   python3 - "$SCAFFOLD/AGENTS.md" "$REPO_ROOT/AGENTS.md" "$TMP/agents-merged.md" <<'PY'
 import sys
-import shutil
 
 scaffold_path, repo_path, out_path = sys.argv[1:4]
 END = "<!-- template-managed:end -->"
@@ -50,7 +56,6 @@ else:
     sys.exit(1)
 
 open(out_path, "w").write(managed + tail)
-shutil.copymode(repo_path, out_path)
 PY
 }
 
@@ -62,9 +67,7 @@ while IFS= read -r line; do
     [ -f "$REPO_ROOT/AGENTS.md" ] || continue
     if splice_agents; then
       if ! cmp -s "$TMP/agents-merged.md" "$REPO_ROOT/AGENTS.md"; then
-        stage=$(mktemp "$REPO_ROOT/AGENTS.md.template-sync.XXXXXX")
-        cp -p "$TMP/agents-merged.md" "$stage"
-        mv -f "$stage" "$REPO_ROOT/AGENTS.md"
+        cp "$TMP/agents-merged.md" "$REPO_ROOT/AGENTS.md"
         changed=1
       fi
     else
@@ -89,9 +92,7 @@ while IFS= read -r line; do
     *)
       if ! cmp -s "$src_path" "$dst_path" 2>/dev/null; then
         mkdir -p "$(dirname "$dst_path")"
-        stage=$(mktemp "$dst_path.template-sync.XXXXXX")
-        cp -p "$src_path" "$stage"
-        mv -f "$stage" "$dst_path"
+        mv "$src_path" "$dst_path"
         chmod +x "$dst_path" 2>/dev/null || true
         changed=1
       fi
@@ -99,10 +100,10 @@ while IFS= read -r line; do
   esac
 done < "$MANIFEST"
 
-# Each managed file is staged beside its destination before rename, so updates
-# replace the running script inode even when /tmp is on a different filesystem.
-# The header padding keeps the managed-loop byte boundary compatible with the
-# v2.0.x readers, whose first upgrade may still copy in place.
+# Managed files move from the private clone so self-updates replace the running
+# script inode rather than rewriting the shell's current input stream. Keep the
+# byte offset through the managed loop compatible with the v2.0.0 reader; its
+# first upgrade still uses an in-place copy (covered by the legacy fixture).
 #
 # The legacy file branch makes every copied file executable. Correct managed
 # Markdown modes after that loop, including on the first legacy-script upgrade.
@@ -122,30 +123,9 @@ while IFS= read -r line; do
   esac
 done < "$MANIFEST"
 
-# Install this cleanup in the tail as well: a legacy consumer reaches this
-# code after its first self-update without having run the new script header.
-stage=
-trap 'rm -rf "$TMP"; [ -z "$stage" ] || rm -f "$stage"' EXIT
-
-# Keep this out of the legacy manifest loop: old readers copy AGENTS in place.
-# Preserve the local mode as well as the tail when publishing the completed merge.
-if [ -f "$REPO_ROOT/AGENTS.md" ]; then
-  if splice_agents; then
-    if ! cmp -s "$TMP/agents-merged.md" "$REPO_ROOT/AGENTS.md"; then
-      stage=$(mktemp "$REPO_ROOT/AGENTS.md.template-sync.XXXXXX")
-      cp -p "$REPO_ROOT/AGENTS.md" "$stage"
-      cat "$TMP/agents-merged.md" > "$stage"
-      mv -f "$stage" "$REPO_ROOT/AGENTS.md"
-      changed=1
-    fi
-  else
-    echo "AGENTS.md has no template boundary; skipping managed-section sync" >&2
-  fi
-fi
-
 # Registers belong to the adopted project once created. Keep seeds separate
 # from the managed manifest so the first run of an older sync script is safe.
-if [ -f "$SCAFFOLD/seed-manifest-v2.txt" ]; then
+if [ -f "$SCAFFOLD/seed-manifest.txt" ]; then
   while IFS= read -r line; do
     case "$line" in ''|\#*) continue ;; esac
     entry=$(echo "$line" | sed 's/^ *//; s/ *$//')
@@ -155,37 +135,10 @@ if [ -f "$SCAFFOLD/seed-manifest-v2.txt" ]; then
     # Also preserve empty files, directories, and dangling symbolic links.
     if [ ! -e "$dst_path" ] && [ ! -L "$dst_path" ]; then
       mkdir -p "$(dirname "$dst_path")"
-      stage=$(mktemp "$dst_path.template-sync.XXXXXX")
-      cp -p "$SCAFFOLD/$src" "$stage"
-      # Publish a completed seed without overwriting a concurrently created
-      # project file, directory, or symbolic link. Both paths share a filesystem.
-      seeded=$(python3 - "$stage" "$dst_path" <<'PY_SEED'
-import errno
-import os
-import sys
-
-try:
-    os.link(sys.argv[1], sys.argv[2])
-except FileExistsError:
-    print(0)
-except OSError as error:
-    if error.errno in {errno.ENOTSUP, errno.EOPNOTSUPP, errno.ENOSYS, errno.EPERM}:
-        sys.exit(
-            f"Cannot initialize {sys.argv[2]}: atomic hard-link publication is "
-            f"unavailable or not permitted ({error}). The register remains absent and "
-            "existing project records are preserved. Initialize the missing "
-            "register manually or run from a filesystem with hard-link support."
-        )
-    raise
-else:
-    print(1)
-PY_SEED
-      )
-      [ "$seeded" = 0 ] || changed=1
-      rm -f "$stage"
-      stage=
+      cp -p "$SCAFFOLD/$src" "$dst_path"
+      changed=1
     fi
-  done < "$SCAFFOLD/seed-manifest-v2.txt"
+  done < "$SCAFFOLD/seed-manifest.txt"
 fi
 
 if [ $changed = 1 ] && [ -f "$REPO_ROOT/records/REPO.md" ]; then

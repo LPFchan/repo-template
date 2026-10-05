@@ -74,11 +74,26 @@ To upgrade an already-adopted repo to the current template contract:
 
 `scaffold/manifest.txt` lists template-owned paths. Upstream-intake guidance is
 managed file by file; project reports and additional files stay project-owned.
-`scaffold/seed-manifest.txt` supplies missing registers without replacing existing
+`scaffold/seed-manifest-v2.txt` supplies missing registers without replacing existing
 content. Keeping seeds separate also protects projects running an older sync
-script during their first upgrade.
+script during their first upgrade. A v2.0.1 reader installs the new script first;
+missing registers and managed AGENTS.md updates are applied by its next run
+through the atomic publication paths. Existing project data stays unchanged
+during that first legacy upgrade.
 
 Run the regression suite with `python3 -m unittest discover -s tests -v`.
 It uses temporary local Git repositories and needs Bash, Git, and Python 3.
 Set `ADOPTED_REPO_UNDER_TEST` to an adopted checkout to additionally verify its
 installed sync script preserves its exact upstream-intake files.
+The cross-filesystem test uses the checkout's parent for its adopted repo. If
+that shares `/tmp`'s filesystem, set `CROSS_FILESYSTEM_TEST_ROOT` to a writable
+directory on another filesystem; CI uses `/dev/shm`. The test reports a skip
+when distinct filesystems are unavailable.
+
+Atomic missing-register initialization requires hard-link support on the adopted
+filesystem. Unsupported filesystems fail with an explicit capability error; the
+missing register stays absent, temporary staging is cleaned, and existing
+project records remain intact. Initialize a missing register manually or use a
+filesystem with hard-link support. A direct-copy fallback would reintroduce
+partial-register and concurrent-overwrite risks. This is tested with injected
+unsupported-operation errors; no exFAT or SMB mount was used for validation.
