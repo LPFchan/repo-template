@@ -85,8 +85,24 @@ missing registers and managed AGENTS.md updates are applied by its next run
 through the atomic publication paths. Existing project data stays unchanged
 during that first legacy upgrade.
 
+The installed sync script requires template version 2.0.4 or newer and rejects
+older or malformed versions before changing project files. This floor covers
+both mixed skill ownership and the separate workflow maintenance boundary.
+
+`scaffold/template-sync.yml` is an adoption artifact. Install or upgrade it through
+a separately reviewed change to `.github/workflows/template-sync.yml`; it is
+outside the automatic sync manifest. Sync reports workflow drift without changing
+workflow files, keeping content updates within the standard `GITHUB_TOKEN`
+permissions. Older installed workflows need a separate reviewed upgrade to gain
+the generated commit provenance, temporary log handling, and bounded staging.
+The current workflow requires a clean checkout, preserves the scheduled or
+manually selected branch, and stages only its captured sync changes. Its logs,
+path list, and generated commit message stay under `RUNNER_TEMP`.
+
 Run the regression suite with `python3 -m unittest discover -s tests -v`.
 It uses temporary local Git repositories and needs Bash, Git, and Python 3.
+Workflow tests execute the shipped shell blocks with local bare remotes, the real
+commit generator, validator, and hooks, including no-op and failure paths.
 Set `ADOPTED_REPO_UNDER_TEST` to an adopted checkout to additionally verify its
 installed sync script preserves its exact upstream-intake files.
 The cross-filesystem test uses the checkout's parent for its adopted repo. If

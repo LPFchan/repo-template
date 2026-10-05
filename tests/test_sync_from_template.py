@@ -186,6 +186,63 @@ class TemplateSyncTests(unittest.TestCase):
     def test_project_skills_survive_v201_upgrade_and_managed_updates(self):
         self.check_project_skills_survive_sync("2.0.1")
 
+    def test_unsafe_template_version_is_rejected_before_project_writes(self):
+        self.populate()
+        version_file = self.scaffold / "records/REPO.md"
+        original = version_file.read_text()
+        version_line = next(line for line in original.splitlines()
+                            if line.startswith("**Template version:"))
+
+        def snapshot():
+            return {path.relative_to(self.repo): (path.stat().st_mode, path.read_bytes())
+                    for path in self.repo.rglob("*")
+                    if path.is_file() and ".git" not in path.relative_to(self.repo).parts}
+
+        before = snapshot()
+        for version in ("1.99.99", "2.0.0", "2.0.1", "2.0.2", "2.0.3", "2.0", "unknown"):
+            with self.subTest(version=version):
+                version_file.write_text(original.replace(version_line,
+                                                         f"**Template version: {version}**"))
+                commit_fixture(self.template)
+                with self.assertRaises(subprocess.CalledProcessError) as error:
+                    self.sync()
+                self.assertIn("minimum is 2.0.4", error.exception.stderr)
+                self.assertEqual(snapshot(), before)
+                self.assertEqual(list(self.repo.rglob("*.template-sync.*")), [])
+
+    def test_safe_template_versions_are_compared_numerically(self):
+        version_file = self.scaffold / "records/REPO.md"
+        original = version_file.read_text()
+        version_line = next(line for line in original.splitlines()
+                            if line.startswith("**Template version:"))
+        for version in ("2.0.5", "2.0.10", "2.1.0", "3.0.0"):
+            with self.subTest(version=version):
+                version_file.write_text(original.replace(version_line,
+                                                         f"**Template version: {version}**"))
+                commit_fixture(self.template)
+                self.assertIn(f"SYNC-VERSION={version}", self.sync())
+
+    def test_workflow_is_preserved_on_current_and_legacy_upgrades(self):
+        self.populate()
+        workflow = self.repo / ".github/workflows/template-sync.yml"
+        self.write(workflow.relative_to(self.repo), b"project-reviewed workflow\n")
+        workflow.chmod(0o640)
+        for version in ("current", "2.0.0", "2.0.1"):
+            with self.subTest(version=version):
+                source = (self.scaffold / "sync-from-template.sh" if version == "current"
+                          else ROOT / f"tests/fixtures/sync-from-template-v{version}.sh")
+                shutil.copyfile(source, self.script)
+                self.sync()
+                self.assertEqual(workflow.read_bytes(), b"project-reviewed workflow\n")
+                self.assertEqual(workflow.stat().st_mode & 0o777, 0o640)
+                repeated = self.sync()
+                self.assertIn("SYNC-CHANGED=0", repeated)
+                self.assertIn("SYNC-WORKFLOW-DRIFT=1", repeated)
+                self.assertEqual(workflow.read_bytes(), b"project-reviewed workflow\n")
+                self.assertEqual(workflow.stat().st_mode & 0o777, 0o640)
+        shutil.copyfile(self.scaffold / "template-sync.yml", workflow)
+        self.assertIn("SYNC-WORKFLOW-DRIFT=0", self.sync())
+
     def test_populated_records_survive_repeated_sync_and_guide_updates(self):
         expected = self.populate()
         self.assertIn("SYNC-CHANGED=1", self.sync())

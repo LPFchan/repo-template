@@ -16,6 +16,8 @@
 # registers are also preserved, as are additional skills, helper assets, and
 # generated skill caches. Missing register seeds are listed separately in
 # seed-manifest-v2.txt so older sync scripts can safely consume this manifest.
+# Workflows are separately reviewed adoption artifacts; automatic sync must
+# leave .github/workflows/ unchanged with the standard GITHUB_TOKEN permissions.
 
 CLAUDE.md -> CLAUDE.md
 skills/README.md -> skills/README.md
@@ -35,5 +37,4 @@ new-commit-message.sh -> scripts/new-commit-message.sh
 check-commit-standards.sh -> scripts/check-commit-standards.sh
 install-hooks.sh -> scripts/install-hooks.sh
 sync-from-template.sh -> scripts/sync-from-template.sh
-template-sync.yml -> .github/workflows/template-sync.yml
 .githooks/ -> .githooks/
