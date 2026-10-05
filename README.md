@@ -85,7 +85,7 @@ missing registers and managed AGENTS.md updates are applied by its next run
 through the atomic publication paths. Existing project data stays unchanged
 during that first legacy upgrade.
 
-The installed sync script requires template version 2.0.6 or newer and rejects
+The installed sync script requires template version 2.0.7 or newer and rejects
 older or malformed versions before changing project files. This floor covers
 both mixed skill ownership and the separate workflow maintenance boundary.
 The recorded template version updates even when only the upstream manifest or
@@ -104,6 +104,14 @@ direct sync. Rendering failures are fatal and do not advance the recorded versio
 Legacy readers retain their own pre-loop behavior during their initial upgrade;
 the full preflight applies when the newly installed script is invoked.
 
+Mode-only changes are synced even when file bytes match. Shell-script file
+mappings retain executable installation modes, including the non-executable
+source `sync-from-template.sh`; Markdown file mappings remain non-executable.
+Other file mappings, including the Python helper, follow source permissions.
+Recursively managed directories follow archive-copy permissions. File modes are
+applied to staging files before atomic publication. Existing project-owned
+registers, AGENTS tails, and policy-file permissions remain preserved.
+
 `scaffold/template-sync.yml` is an adoption artifact. Install or upgrade it through
 a separately reviewed change to `.github/workflows/template-sync.yml`; it is
 outside the automatic sync manifest. Sync reports workflow drift without changing
@@ -120,7 +128,7 @@ Workflow commit provenance uses the unique canonical `Project id` in
 or ambiguous IDs stop the commit rather than falling back to a repository name.
 
 Run the regression suite with `python3 -m unittest discover -s tests -v`.
-It uses temporary local Git repositories and needs Bash, Git, and Python 3.
+It uses temporary local Git repositories and needs Bash, Git, Python 3, and rsync.
 Workflow tests execute the shipped shell blocks with local bare remotes, the real
 commit generator, validator, and hooks, including no-op and failure paths.
 Set `ADOPTED_REPO_UNDER_TEST` to an adopted checkout to additionally verify its

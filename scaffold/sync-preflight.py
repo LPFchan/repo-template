@@ -5,8 +5,10 @@ import os
 from pathlib import Path
 import re
 import shutil
+import stat
 import subprocess
 import sys
+import tempfile
 
 
 def refuse(message):
@@ -46,9 +48,88 @@ def mappings(root, scaffold, name):
         if " -> " not in entry:
             refuse("Refusing invalid manifest entry: " + entry)
         source = entry.split(" -> ", 1)[0]
-        target = destination(root, entry.rsplit(" -> ", 1)[1])
-        result.append((source, target))
+        relative = entry.rsplit(" -> ", 1)[1]
+        target = destination(root, relative)
+        result.append((source, target, relative))
     return result
+
+
+def file_mode(source):
+    """Preserve source permissions with the established shell/Markdown rules."""
+    mode = stat.S_IMODE(source.stat().st_mode)
+    if source.name.endswith(".sh"):
+        mode |= 0o111
+    elif source.name.endswith(".md"):
+        mode &= ~0o111
+    return mode
+
+
+def mode_entries(root, scaffold, source, target):
+    source_path = scaffold / source
+    if not source.endswith("/"):
+        return [(Path(target), file_mode(source_path))]
+    entries = []
+    for path in [source_path, *source_path.rglob("*")]:
+        if path.is_symlink():
+            continue  # Archive copies preserve links; their modes are not chmod'd.
+        relative = os.path.relpath(Path(target) / path.relative_to(source_path), root)
+        installed = Path(destination(root, relative))
+        if path == source_path:
+            # rsync follows an internal destination-root directory alias while
+            # preserving the link itself. Compare and repair its referent mode.
+            installed = installed.resolve()
+        entries.append((installed, stat.S_IMODE(path.stat().st_mode)))
+    return entries
+
+
+def different_mode(path, expected):
+    try:
+        return path.is_symlink() or stat.S_IMODE(path.stat().st_mode) != expected
+    except FileNotFoundError:
+        return True
+
+
+def plan_modes(root, scaffold, temporary, managed):
+    changed = []
+    for source, target, relative in managed:
+        entries = mode_entries(root, scaffold, source, target)
+        if any(different_mode(path, mode) for path, mode in entries):
+            changed.append(relative)
+    (temporary / "mode-changes").write_text("".join(path + "\n" for path in changed))
+
+
+def repair_legacy_modes(root, scaffold, managed):
+    # A v2.0.0 reader already copied files before reaching the new shell tail.
+    # Validate every path first, then restore the same modes a current copy uses.
+    plans = [(source, target, mode_entries(root, scaffold, source, target))
+             for source, target, _ in managed]
+    changed = False
+    for source, target, entries in plans:
+        changes = [(path, mode) for path, mode in entries if different_mode(path, mode)]
+        if not changes:
+            continue
+        if source.endswith("/"):
+            # Archive sync preserves a destination-root alias but replaces
+            # child aliases, just as the current shell directory branch does.
+            subprocess.run(("rsync", "-a", "--delete", str(scaffold / source) + "/",
+                            target + "/"), check=True)
+        else:
+            path, mode = changes[0]
+            if path.is_symlink():
+                descriptor, temporary = tempfile.mkstemp(
+                    prefix=path.name + ".template-sync.", dir=path.parent)
+                os.close(descriptor)
+                try:
+                    shutil.copy2(scaffold / source, temporary)
+                    os.chmod(temporary, mode)
+                    os.replace(temporary, path)
+                finally:
+                    if os.path.lexists(temporary):
+                        os.unlink(temporary)
+            else:
+                os.chmod(path, mode, follow_symlinks=False)
+        changed = True
+    print(int(changed))
 
 
 def dirty_paths(root):
@@ -143,14 +224,19 @@ def main():
     root = os.path.abspath(root)
     scaffold, temporary = Path(scaffold), Path(temporary)
     render_only = sys.argv[5:] == ["--render-only"]
-    if sys.argv[5:] and not render_only:
+    repair_modes = sys.argv[5:] == ["--repair-modes"]
+    if sys.argv[5:] and not (render_only or repair_modes):
         refuse("Invalid preflight arguments")
     agents = destination(root, "AGENTS.md")
     policy = destination(root, "records/REPO.md")
     if not render_only:
         managed = mappings(root, scaffold, "manifest.txt")
         mappings(root, scaffold, "seed-manifest-v2.txt")
-        protect_uncommitted(root, [target for _, target in managed] + [agents, policy])
+        if repair_modes:
+            repair_legacy_modes(root, scaffold, managed)
+            return
+        protect_uncommitted(root, [target for _, target, _ in managed] + [agents, policy])
+        plan_modes(root, scaffold, temporary, managed)
     render_agents(root, scaffold, temporary)
     render_policy(root, temporary, version)
     (temporary / "preflight-ready").touch()

@@ -49,6 +49,10 @@ class TemplateWorkflowTests(unittest.TestCase):
             else:
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(scaffold / source, target)
+                # Model an adopted checkout with runnable shell entry points,
+                # even when the template stores a source script as 0644.
+                if source.endswith(".sh"):
+                    target.chmod(target.stat().st_mode | 0o111)
         shutil.copytree(scaffold / "records", self.repo / "records", dirs_exist_ok=True)
         spec = self.repo / "records/SPEC.md"
         spec.write_text(spec.read_text().replace("- Project id:\n",
@@ -367,6 +371,39 @@ class TemplateWorkflowTests(unittest.TestCase):
                              "HEAD", cwd=self.repo), "records/REPO.md\n")
         self.assertEqual(self.sync()["SYNC-CHANGED"], "0")
         self.assertEqual(self.remote_head(), after)
+
+    def test_mode_only_changes_are_committed_and_repeat_is_noop(self):
+        self.commit(self.sync())
+        relative = "scripts/sync-preflight.py"
+        source = self.template / "scaffold/sync-preflight.py"
+        target = self.repo / relative
+        original = target.read_bytes()
+        for old, new in ((0o755, 0o644), (0o644, 0o755)):
+            with self.subTest(source_mode=oct(new)):
+                self.assertEqual(target.stat().st_mode & 0o777, old)
+                source.chmod(new)
+                commit_fixture(self.template)
+                before = self.remote_head()
+                values = self.sync()
+                self.assertEqual(values["SYNC-CHANGED"], "1")
+                self.assertEqual(values["SYNC-VERSION"], "2.0.7")
+                self.assertEqual(target.stat().st_mode & 0o777, new)
+                self.assertEqual(target.read_bytes(), original)
+                summary = f" mode change {0o100000 | old:o} => {0o100000 | new:o} {relative}\n"
+                self.assertEqual(run("git", "diff", "--summary", cwd=self.repo), summary)
+                self.commit(values)
+                after = self.remote_head()
+                self.assertNotEqual(after, before)
+                self.assertEqual(run("git", "rev-parse", "HEAD", cwd=self.repo).strip(), after)
+                self.assertEqual(run("git", "diff-tree", "--no-commit-id", "--summary",
+                                     "-r", "HEAD", cwd=self.repo), summary)
+                self.assertEqual(run("git", "diff-tree", "--no-commit-id", "--numstat",
+                                     "-r", "HEAD", cwd=self.repo), f"0\t0\t{relative}\n")
+                self.assertEqual(run("git", "status", "--porcelain", cwd=self.repo), "")
+                values = self.sync()
+                self.assertEqual(values["SYNC-CHANGED"], "0")
+                self.commit(values)
+                self.assertEqual(self.remote_head(), after)
 
 
 if __name__ == "__main__":
