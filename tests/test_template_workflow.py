@@ -50,6 +50,9 @@ class TemplateWorkflowTests(unittest.TestCase):
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(scaffold / source, target)
         shutil.copytree(scaffold / "records", self.repo / "records", dirs_exist_ok=True)
+        spec = self.repo / "records/SPEC.md"
+        spec.write_text(spec.read_text().replace("- Project id:\n",
+                                                "- Project id: fixture-project\n"))
         shutil.copy2(scaffold / "AGENTS.md", self.repo / "AGENTS.md")
         (self.repo / ".github/workflows").mkdir(parents=True, exist_ok=True)
         shutil.copy2(scaffold / "template-sync.yml",
@@ -64,13 +67,14 @@ class TemplateWorkflowTests(unittest.TestCase):
         self.output = self.runner / "github-output"
         self.summary = self.runner / "github-summary"
         self.branch = "main"
+        self.repository = "fixture/adopted"
 
     def remote_head(self, branch="main"):
         return run("git", "rev-parse", f"refs/heads/{branch}", cwd=self.origin).strip()
 
     def step(self, name, extra=None, check=True):
         env = {**os.environ, "RUNNER_TEMP": str(self.runner),
-               "GITHUB_OUTPUT": str(self.output), "GITHUB_REPOSITORY": "fixture/adopted",
+               "GITHUB_OUTPUT": str(self.output), "GITHUB_REPOSITORY": self.repository,
                "GITHUB_STEP_SUMMARY": str(self.summary),
                "GITHUB_REF_TYPE": "branch", "GITHUB_REF_NAME": self.branch,
                "TEMPLATE_URL": self.template.as_uri(), **(extra or {})}
@@ -101,6 +105,7 @@ class TemplateWorkflowTests(unittest.TestCase):
         self.assertNotEqual(before, after)
         self.assertEqual(run("git", "rev-parse", "HEAD", cwd=self.repo).strip(), after)
         message = run("git", "log", "-1", "--format=%B", cwd=self.repo)
+        self.assertIn("project: fixture-project\n", message)
         self.assertIn("agent: actions\n", message)
         log_id = next(line.removeprefix("commit: ") for line in message.splitlines()
                       if line.startswith("commit: "))
@@ -122,6 +127,78 @@ class TemplateWorkflowTests(unittest.TestCase):
         self.commit(values)
         self.assertEqual(self.remote_head(), after)
         self.assertEqual(run("git", "status", "--porcelain", cwd=self.repo), "")
+
+    def assert_canonical_project_trailer(self, repository, project_id, spec):
+        self.repository = repository
+        (self.repo / "records/SPEC.md").write_text(spec)
+        commit_fixture(self.repo)
+        run("git", "push", "-q", cwd=self.repo)
+        self.commit(self.sync())
+        message = run("git", "log", "-1", "--format=%B", cwd=self.repo)
+        self.assertEqual([line for line in message.splitlines()
+                          if line.startswith("project:")], [f"project: {project_id}"])
+        self.assertEqual(run("git", "rev-parse", "HEAD", cwd=self.repo).strip(),
+                         self.remote_head())
+
+    def test_photos_auth_capture_uses_canonical_project_id(self):
+        self.assert_canonical_project_trailer(
+            "LPFchan/PhotosAuthCapture", "photos-auth-capture",
+            "# PhotosAuthCapture Spec\n\n- Project id: photos-auth-capture\n")
+
+    def test_franken_agent_detection_uses_backtick_wrapped_project_id(self):
+        self.assert_canonical_project_trailer(
+            "LPFchan/franken_agent_detection", "franken-agent-detection",
+            "# Franken Agent Detection Spec\n\n- Project id: `franken-agent-detection`\n")
+
+    def test_deepest_crawl_uses_canonical_project_id(self):
+        self.assert_canonical_project_trailer(
+            "LPFchan/deepest-crawl", "deepest-crawl",
+            "# Deepest Crawl Spec\n\n- Project id: deepest-crawl\n")
+
+    def test_fenced_project_examples_are_ignored(self):
+        self.assert_canonical_project_trailer(
+            "fixture/display-name", "fixture-project",
+            "# Spec\n\n```markdown\n- Project id: example-project\n```\n"
+            "~~~~markdown\n- Project id: `another-example`\n```\n"
+            "- Project id: still-an-example\n~~~~\n"
+            "    - Project id: indented-code-example\n"
+            "\n- Project id: `fixture-project`\n")
+
+    def test_missing_invalid_or_ambiguous_project_ids_prevent_staging_and_commit(self):
+        values = self.sync()
+        before = self.remote_head()
+        spec = self.repo / "records/SPEC.md"
+        cases = {
+            "missing file": None,
+            "missing field": "# Spec\n",
+            "empty field": "- Project id:\n",
+            "uppercase display name": "- Project id: PhotosAuthCapture\n",
+            "underscored display name": "- Project id: franken_agent_detection\n",
+            "spaces": "- Project id: fixture project\n",
+            "leading hyphen": "- Project id: -fixture-project\n",
+            "trailing hyphen": "- Project id: fixture-project-\n",
+            "unclosed backtick": "- Project id: `fixture-project\n",
+            "unopened backtick": "- Project id: fixture-project`\n",
+            "shell expression": "- Project id: $(touch should-not-exist)\n",
+            "different fields": "- Project id: fixture-project\n- Project id: other-project\n",
+            "duplicate fields": "- Project id: fixture-project\n- Project id: fixture-project\n",
+            "only fenced example": "```markdown\n- Project id: example-project\n```\n",
+            "only tilde-fenced example": "~~~\n- Project id: example-project\n~~~\n",
+        }
+        for label, content in cases.items():
+            with self.subTest(case=label):
+                if content is None:
+                    spec.unlink()
+                else:
+                    spec.write_text(content)
+                result = self.commit(values, check=False)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("records/SPEC.md", result.stderr)
+                self.assertEqual(self.remote_head(), before)
+                self.assertEqual(run("git", "rev-parse", "HEAD", cwd=self.repo).strip(), before)
+                self.assertEqual(run("git", "diff", "--cached", "--name-only", cwd=self.repo), "")
+                self.assertFalse((Path(values["state_dir"]) / "commit-message.txt").exists())
+                self.assertFalse((self.repo / "should-not-exist").exists())
 
     def test_dirty_checkout_is_rejected_before_sync(self):
         before = self.remote_head()

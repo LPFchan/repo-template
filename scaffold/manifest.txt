@@ -36,5 +36,6 @@ records/upstream-intake/reports/operator-briefs/README.md -> records/upstream-in
 new-commit-message.sh -> scripts/new-commit-message.sh
 check-commit-standards.sh -> scripts/check-commit-standards.sh
 install-hooks.sh -> scripts/install-hooks.sh
+sync-preflight.py -> scripts/sync-preflight.py
 sync-from-template.sh -> scripts/sync-from-template.sh
 .githooks/ -> .githooks/

@@ -70,7 +70,15 @@ class TemplateSyncTests(unittest.TestCase):
     def script(self):
         return self.repo / "scripts/sync-from-template.sh"
 
-    def sync(self):
+    def checkpoint(self):
+        # These fixtures model committed adopted state and caller-owned commits
+        # between syncs. Dirty-data regressions explicitly disable this step.
+        if run("git", "status", "--porcelain", "--untracked-files=all", cwd=self.repo):
+            commit_fixture(self.repo)
+
+    def sync(self, checkpoint=True):
+        if checkpoint:
+            self.checkpoint()
         output = run(
             "bash", str(self.script), cwd=self.repo,
             env={**os.environ, "TEMPLATE_URL": self.template.as_uri()},
@@ -209,14 +217,14 @@ class TemplateSyncTests(unittest.TestCase):
                             if line.startswith("**Template version:"))
 
         before = self.project_snapshot()
-        for version in ("1.99.99", "2.0.0", "2.0.1", "2.0.2", "2.0.3", "2.0", "unknown"):
+        for version in ("1.99.99", "2.0.0", "2.0.1", "2.0.2", "2.0.3", "2.0.4", "2.0.5", "2.0", "unknown"):
             with self.subTest(version=version):
                 version_file.write_text(original.replace(version_line,
                                                          f"**Template version: {version}**"))
                 commit_fixture(self.template)
                 with self.assertRaises(subprocess.CalledProcessError) as error:
                     self.sync()
-                self.assertIn("minimum is 2.0.4", error.exception.stderr)
+                self.assertIn("minimum is 2.0.6", error.exception.stderr)
                 self.assertEqual(self.project_snapshot(), before)
                 self.assertEqual(list(self.repo.rglob("*.template-sync.*")), [])
 
@@ -279,7 +287,7 @@ class TemplateSyncTests(unittest.TestCase):
         original = version_file.read_text()
         version_line = next(line for line in original.splitlines()
                             if line.startswith("**Template version:"))
-        for version in ("2.0.5", "2.0.10", "2.1.0", "3.0.0"):
+        for version in ("2.0.6", "2.0.10", "2.1.0", "3.0.0"):
             with self.subTest(version=version):
                 content = original.replace(version_line, f"**Template version: {version}**")
                 if version_file.read_text() != content:
@@ -296,10 +304,11 @@ class TemplateSyncTests(unittest.TestCase):
         source = version_file.read_text()
         version_line = next(line for line in source.splitlines()
                             if line.startswith("**Template version:"))
-        version_file.write_text(source.replace(version_line, "**Template version: 2.0.4**"))
-        commit_fixture(self.template)
+        if version_line != "**Template version: 2.0.6**":
+            version_file.write_text(source.replace(version_line, "**Template version: 2.0.6**"))
+            commit_fixture(self.template)
         policy = self.repo / "records/REPO.md"
-        for old_version in ("2.0.0", "2.0.40"):
+        for old_version in ("2.0.0", "2.0.60"):
             with self.subTest(old_version=old_version):
                 before = (f"# Local policy\r\n\r\n**Template version: {old_version}**\r\n"
                           f"\r\nRetain prose mentioning Template version: {old_version}.\r\n"
@@ -308,7 +317,7 @@ class TemplateSyncTests(unittest.TestCase):
                 policy.chmod(0o640)
                 self.assertIn("SYNC-CHANGED=1", self.sync())
                 after = before.replace(f"**Template version: {old_version}**".encode(),
-                                       b"**Template version: 2.0.4**", 1)
+                                       b"**Template version: 2.0.6**", 1)
                 self.assertEqual(policy.read_bytes(), after)
                 self.assertEqual(policy.stat().st_mode & 0o777, 0o640)
                 self.assert_preserved(expected)
@@ -349,6 +358,208 @@ class TemplateSyncTests(unittest.TestCase):
         self.assertIn("SYNC-CHANGED=1", self.sync())
         self.assertEqual(policy.stat().st_mode & 0o777, 0o600)
         self.assertIn("SYNC-CHANGED=0", self.sync())
+
+    def test_only_canonical_header_version_changes(self):
+        self.sync()
+        policy = self.repo / "records/REPO.md"
+        examples = (
+            ("2.0.0", b"## Local Divergence\n```md\n**Template version: 2.0.6**\n```\n"),
+            ("2.0.6", b"## Local Divergence\n**Template version: 2.0.0**\n"),
+            ("2.0.0", b"## Local Divergence\n**Template version: 2.0.1**\n"
+                       b"**Template version: 2.0.2**\n"),
+        )
+        for current, tail in examples:
+            with self.subTest(current=current, tail=tail):
+                before = f"# Local policy\n\n**Template version: {current}**\n\n".encode() + tail
+                policy.write_bytes(before)
+                policy.chmod(0o640)
+                output = self.sync()
+                self.assertIn(f"SYNC-CHANGED={int(current != '2.0.6')}", output)
+                self.assertEqual(policy.read_bytes(), before.replace(
+                    f"**Template version: {current}**".encode(), b"**Template version: 2.0.6**", 1))
+                self.assertEqual(policy.stat().st_mode & 0o777, 0o640)
+        policy.write_bytes(b"# Local policy\n```\n**Template version: 2.0.1**\n```\n"
+                           b"**Template version: 2.0.0**\n## Local\n")
+        self.sync()
+        self.assertEqual(policy.read_bytes(), b"# Local policy\n```\n**Template version: 2.0.1**\n```\n"
+                                             b"**Template version: 2.0.6**\n## Local\n")
+
+    def test_resolved_destinations_cannot_escape_repository(self):
+        self.sync()
+        outside = self.root / "outside"
+        outside.mkdir()
+        (outside / "keep.txt").write_bytes(b"external data\n")
+        (self.repo / "shared").symlink_to(outside, target_is_directory=True)
+        self.checkpoint()
+        before = self.project_snapshot()
+        for name, mapping in (
+            ("manifest.txt", "CLAUDE.md -> shared/guide.md"),
+            ("manifest.txt", ".githooks/ -> shared/hooks/"),
+            ("seed-manifest-v2.txt", "CLAUDE.md -> shared/seed.md"),
+        ):
+            with self.subTest(manifest=name, mapping=mapping):
+                manifest = self.scaffold / name
+                original = manifest.read_text()
+                manifest.write_text(original + "\n" + mapping + "\n")
+                commit_fixture(self.template)
+                with self.assertRaises(subprocess.CalledProcessError) as error:
+                    self.sync(checkpoint=False)
+                self.assertIn("outside the repository", error.exception.stderr)
+                self.assertEqual(self.project_snapshot(), before)
+                self.assertEqual(list(outside.iterdir()), [outside / "keep.txt"])
+                self.assertEqual((outside / "keep.txt").read_bytes(), b"external data\n")
+                manifest.write_text(original)
+                commit_fixture(self.template)
+
+    def test_direct_sync_refuses_staged_unstaged_and_deleted_managed_files(self):
+        self.sync()
+        self.checkpoint()
+        for relative in ("skills/commit-generator/SKILL.md", "AGENTS.md", "records/REPO.md"):
+            target = self.repo / relative
+            original = target.read_bytes()
+            for kind in ("unstaged", "staged", "deleted"):
+                with self.subTest(path=relative, kind=kind):
+                    if kind == "deleted":
+                        target.unlink()
+                    else:
+                        target.write_bytes(b"uncommitted managed content\n")
+                    if kind == "staged":
+                        run("git", "add", relative, cwd=self.repo)
+                    before = self.project_snapshot()
+                    with self.assertRaises(subprocess.CalledProcessError) as error:
+                        self.sync(checkpoint=False)
+                    self.assertIn("uncommitted sync destination", error.exception.stderr)
+                    self.assertEqual(self.project_snapshot(), before)
+                    target.write_bytes(original)
+                    run("git", "reset", "-q", "HEAD", "--", relative, cwd=self.repo)
+
+    def test_existing_skill_parent_symlink_cannot_write_external_data(self):
+        self.sync()
+        skill = self.repo / "skills/clean-correction"
+        external = self.root / "external-skill"
+        shutil.move(skill, external)
+        skill.symlink_to(external, target_is_directory=True)
+        self.checkpoint()
+        before = self.project_snapshot()
+        external_bytes = (external / "SKILL.md").read_bytes()
+        external_mode = (external / "SKILL.md").stat().st_mode
+        with self.assertRaises(subprocess.CalledProcessError) as error:
+            self.sync(checkpoint=False)
+        self.assertIn("outside the repository", error.exception.stderr)
+        self.assertEqual(self.project_snapshot(), before)
+        self.assertEqual((external / "SKILL.md").read_bytes(), external_bytes)
+        self.assertEqual((external / "SKILL.md").stat().st_mode, external_mode)
+
+    def test_direct_sync_refuses_untracked_and_ignored_managed_data(self):
+        self.sync()
+        self.write(Path(".gitignore"), b".githooks/ignored-cache/\n")
+        self.checkpoint()
+        for relative in (".githooks/local-note.txt", ".githooks/ignored-cache/host.bin"):
+            with self.subTest(path=relative):
+                self.write(Path(relative), b"local data\x00")
+                before = self.project_snapshot()
+                with self.assertRaises(subprocess.CalledProcessError) as error:
+                    self.sync(checkpoint=False)
+                self.assertIn("uncommitted sync destination", error.exception.stderr)
+                self.assertEqual(self.project_snapshot(), before)
+                (self.repo / relative).unlink()
+        source = self.scaffold / "local-guide.md"
+        source.write_text("template guidance\n")
+        with (self.scaffold / "manifest.txt").open("a") as stream:
+            stream.write("\nlocal-guide.md -> skills/new-local-guide.md\n")
+        commit_fixture(self.template)
+        self.write(Path("skills/new-local-guide.md"), b"existing untracked user draft\n")
+        before = self.project_snapshot()
+        with self.assertRaises(subprocess.CalledProcessError) as error:
+            self.sync(checkpoint=False)
+        self.assertIn("uncommitted sync destination", error.exception.stderr)
+        self.assertEqual(self.project_snapshot(), before)
+
+    def test_direct_sync_preserves_unrelated_dirty_records_caches_and_logs(self):
+        self.populate()
+        self.sync()
+        self.checkpoint()
+        expected = {
+            Path("records/SPEC.md"): b"uncommitted project truth\n",
+            UPSTREAM / REGISTERS[0]: b"uncommitted project register\n",
+            Path("skills/custom/__pycache__/host.pyc"): b"host cache\x00",
+            Path("skills/commit-generator/assets/local.bin"): b"custom skill asset\xff",
+            Path("sync.log"): b"legacy workflow output\n",
+        }
+        for path, data in expected.items():
+            self.write(path, data)
+        with (self.scaffold / "skills/README.md").open("a") as stream:
+            stream.write("\nNew template guidance.\n")
+        commit_fixture(self.template)
+        self.assertIn("SYNC-CHANGED=1", self.sync(checkpoint=False))
+        self.assert_preserved(expected)
+
+    def test_agents_render_failure_is_fatal_before_any_project_write(self):
+        self.populate()
+        self.sync()
+        template_agents = self.scaffold / "AGENTS.md"
+        original_template = template_agents.read_bytes()
+        for location in ("template", "project"):
+            with self.subTest(location=location):
+                if location == "template":
+                    template_agents.write_bytes(b"# No managed boundary\n")
+                    commit_fixture(self.template)
+                else:
+                    (self.repo / "AGENTS.md").write_bytes(b"# No recognized local boundary\n")
+                self.checkpoint()
+                before = self.project_snapshot()
+                with self.assertRaises(subprocess.CalledProcessError) as error:
+                    self.sync(checkpoint=False)
+                self.assertIn("AGENTS.md", error.exception.stderr)
+                self.assertNotIn("SYNC-VERSION=", error.exception.stdout)
+                self.assertNotIn("SYNC-CHANGED=", error.exception.stdout)
+                self.assertEqual(self.project_snapshot(), before)
+                if location == "template":
+                    template_agents.write_bytes(original_template)
+                    commit_fixture(self.template)
+
+    def test_agents_render_io_error_does_not_advance_version(self):
+        self.sync()
+        self.write(Path("records/REPO.md"), b"# Local policy\n**Template version: 2.0.0**\n")
+        self.checkpoint()
+        before = self.project_snapshot()
+        injection = self.root / "fail-agents-render"
+        injection.mkdir()
+        (injection / "sitecustomize.py").write_text(
+            "from pathlib import Path\n"
+            "original = Path.write_bytes\n"
+            "def write(self, data):\n"
+            "    if self.name == 'agents-merged.md':\n"
+            "        raise OSError('injected AGENTS rendering failure')\n"
+            "    return original(self, data)\n"
+            "Path.write_bytes = write\n"
+        )
+        with mock.patch.dict(os.environ, {"PYTHONPATH": str(injection), "PYTHONDONTWRITEBYTECODE": "1"}):
+            with self.assertRaises(subprocess.CalledProcessError) as error:
+                self.sync(checkpoint=False)
+        self.assertIn("injected AGENTS rendering failure", error.exception.stderr)
+        self.assertNotIn("SYNC-VERSION=", error.exception.stdout)
+        self.assertEqual(self.project_snapshot(), before)
+
+    def test_legacy_tee_workflow_can_upgrade_twice_with_worktree_log(self):
+        self.populate()
+        shutil.copyfile(ROOT / "tests/fixtures/sync-from-template-v2.0.0.sh", self.script)
+        self.checkpoint()
+
+        def legacy_step():
+            return run("bash", "-c", "set -euo pipefail; bash scripts/sync-from-template.sh | tee sync.log",
+                       cwd=self.repo, env={**os.environ, "TEMPLATE_URL": self.template.as_uri()})
+
+        self.assertIn("SYNC-CHANGED=1", legacy_step())
+        self.checkpoint()
+        with (self.scaffold / "skills/README.md").open("a") as stream:
+            stream.write("\nSecond upgrade guidance.\n")
+        commit_fixture(self.template)
+        self.assertIn("SYNC-CHANGED=1", legacy_step())
+        self.assertEqual((self.repo / "skills/README.md").read_bytes(),
+                         (self.scaffold / "skills/README.md").read_bytes())
+        self.checkpoint()
+        self.assertIn("SYNC-CHANGED=0", legacy_step())
 
     def test_workflow_is_preserved_on_current_and_legacy_upgrades(self):
         self.populate()
