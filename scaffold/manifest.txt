@@ -6,14 +6,16 @@
 # adopted repos on every sync. Directories sync recursively; files that exist
 # in a repo's managed directory but not in the scaffold are deleted.
 #
+# The AGENTS.md managed section is spliced separately by the current sync engine.
+# Legacy readers defer that splice until the newly installed script runs.
+#
 # Everything NOT listed here is repo-specific and is never touched by sync:
 # records/SPEC.md, records/STATUS.md, records/PLANS.md, records/INBOX.md,
 # records/decisions/, records/research/, and any content in AGENTS.md after
 # the <!-- template-managed:end --> marker. Project-owned upstream reports and
 # registers are also preserved. Missing register seeds are listed separately in
-# seed-manifest.txt so older sync scripts can safely consume this manifest.
+# seed-manifest-v2.txt so older sync scripts can safely consume this manifest.
 
-AGENTS.md managed-section
 CLAUDE.md -> CLAUDE.md
 skills/ -> skills/
 records/upstream-intake/README.md -> records/upstream-intake/README.md

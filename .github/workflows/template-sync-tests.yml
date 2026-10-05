@@ -16,4 +16,6 @@ jobs:
       - name: Check sync syntax
         run: bash -n scaffold/sync-from-template.sh
       - name: Test template ownership and upgrades
+        env:
+          CROSS_FILESYSTEM_TEST_ROOT: /dev/shm
         run: python3 -m unittest discover -s tests -v
