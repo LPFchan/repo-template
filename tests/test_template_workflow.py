@@ -8,6 +8,7 @@ import tempfile
 import unittest
 
 from test_sync_from_template import ROOT, VERSION, commit_fixture, run
+from unittest import mock
 
 
 def workflow_step(name):
@@ -182,6 +183,26 @@ class TemplateWorkflowTests(unittest.TestCase):
         self.assert_canonical_project_trailer(
             "fixture/display-name", "fixture-project",
             "# Spec\n\n**Project id:** `fixture-project`\n")
+
+    def test_same_second_messages_get_distinct_registered_ids(self):
+        binary = self.root / "fixed-clock"
+        binary.mkdir()
+        system_date = shutil.which("date")
+        shim = binary / "date"
+        shim.write_text("#!/bin/sh\n"
+                        "if [ \"$1\" = '+%Y%m%d-%H%M%S' ]; then\n"
+                        "  printf '%s\\n' 20261012-140000\n"
+                        "else\n  exec " + system_date + " \"$@\"\nfi\n")
+        shim.chmod(0o755)
+        ids = []
+        with mock.patch.dict(os.environ, {"PATH": str(binary) + ":" + os.environ["PATH"]}):
+            for project_id in ("Photopeace", "Rocketeer", "legacy_id"):
+                self.assert_canonical_project_trailer(
+                    "fixture/display-name", project_id,
+                    "# Spec\n\n- Project id: " + project_id + "\n")
+                message = run("git", "log", "-1", "--format=%B", cwd=self.repo)
+                ids.append(next(line for line in message.splitlines() if line.startswith("commit: ")))
+        self.assertEqual(len(ids), len(set(ids)))
 
     def test_table_examples_inside_fences_are_ignored(self):
         self.assert_canonical_project_trailer(
