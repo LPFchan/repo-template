@@ -7,7 +7,8 @@ import subprocess
 import tempfile
 import unittest
 
-from test_sync_from_template import ROOT, commit_fixture, run
+from test_sync_from_template import ROOT, VERSION, commit_fixture, run
+from unittest import mock
 
 
 def workflow_step(name):
@@ -82,8 +83,14 @@ class TemplateWorkflowTests(unittest.TestCase):
                "GITHUB_STEP_SUMMARY": str(self.summary),
                "GITHUB_REF_TYPE": "branch", "GITHUB_REF_NAME": self.branch,
                "TEMPLATE_URL": self.template.as_uri(), **(extra or {})}
-        return subprocess.run(["bash", "-c", workflow_step(name)], cwd=self.repo,
-                              env=env, text=True, capture_output=True, check=check)
+        try:
+            return subprocess.run(["bash", "-c", workflow_step(name)], cwd=self.repo,
+                                  env=env, text=True, capture_output=True, check=check)
+        except subprocess.CalledProcessError as error:
+            # Preserve the exception type and expose the failing shell gate.
+            print(error.stdout, end="")
+            print(error.stderr, end="")
+            raise
 
     def sync(self):
         self.output.write_text("")
@@ -135,6 +142,7 @@ class TemplateWorkflowTests(unittest.TestCase):
     def assert_canonical_project_trailer(self, repository, project_id, spec):
         self.repository = repository
         (self.repo / "records/SPEC.md").write_text(spec)
+        (self.repo / "CLAUDE.md").write_text("outdated managed instructions\n")
         commit_fixture(self.repo)
         run("git", "push", "-q", cwd=self.repo)
         self.commit(self.sync())
@@ -159,6 +167,49 @@ class TemplateWorkflowTests(unittest.TestCase):
             "LPFchan/deepest-crawl", "deepest-crawl",
             "# Deepest Crawl Spec\n\n- Project id: deepest-crawl\n")
 
+    def test_markdown_table_preserves_canonical_project_identity(self):
+        self.assert_canonical_project_trailer(
+            "LPFchan/Superhuman", "superhuman",
+            "# Superhuman Spec\n\n| Field | Value |\n| Project id | `superhuman` |\n")
+
+    def test_declared_legacy_ids_preserve_case_and_underscores(self):
+        for project_id in ("Photopeace", "Rocketeer", "legacy_id"):
+            with self.subTest(project_id=project_id):
+                self.assert_canonical_project_trailer(
+                    "fixture/display-name", project_id,
+                    "# Spec\n\n- Project id: " + project_id + "\n")
+
+    def test_bold_identity_label_preserves_record_shape(self):
+        self.assert_canonical_project_trailer(
+            "fixture/display-name", "fixture-project",
+            "# Spec\n\n**Project id:** `fixture-project`\n")
+
+    def test_same_second_messages_get_distinct_registered_ids(self):
+        binary = self.root / "fixed-clock"
+        binary.mkdir()
+        system_date = shutil.which("date")
+        shim = binary / "date"
+        shim.write_text("#!/bin/sh\n"
+                        "if [ \"$1\" = '+%Y%m%d-%H%M%S' ]; then\n"
+                        "  printf '%s\\n' 20261012-140000\n"
+                        "else\n  exec " + system_date + " \"$@\"\nfi\n")
+        shim.chmod(0o755)
+        ids = []
+        with mock.patch.dict(os.environ, {"PATH": str(binary) + ":" + os.environ["PATH"]}):
+            for project_id in ("Photopeace", "Rocketeer", "legacy_id"):
+                self.assert_canonical_project_trailer(
+                    "fixture/display-name", project_id,
+                    "# Spec\n\n- Project id: " + project_id + "\n")
+                message = run("git", "log", "-1", "--format=%B", cwd=self.repo)
+                ids.append(next(line for line in message.splitlines() if line.startswith("commit: ")))
+        self.assertEqual(len(ids), len(set(ids)))
+
+    def test_table_examples_inside_fences_are_ignored(self):
+        self.assert_canonical_project_trailer(
+            "fixture/display-name", "fixture-project",
+            "```markdown\n| Project id | example |\n```\n"
+            "| Project id | `fixture-project` |\n")
+
     def test_fenced_project_examples_are_ignored(self):
         self.assert_canonical_project_trailer(
             "fixture/display-name", "fixture-project",
@@ -176,8 +227,10 @@ class TemplateWorkflowTests(unittest.TestCase):
             "missing file": None,
             "missing field": "# Spec\n",
             "empty field": "- Project id:\n",
-            "uppercase display name": "- Project id: PhotosAuthCapture\n",
-            "underscored display name": "- Project id: franken_agent_detection\n",
+            "empty wrapped field": "- Project id: ``\n",
+            "malformed table": "| Project id | one | extra |\n",
+            "mixed duplicate": "- Project id: one\n| Project id | one |\n",
+            "bold duplicate": "- Project id: one\n**Project id:** one\n",
             "spaces": "- Project id: fixture project\n",
             "leading hyphen": "- Project id: -fixture-project\n",
             "trailing hyphen": "- Project id: fixture-project-\n",
@@ -386,7 +439,7 @@ class TemplateWorkflowTests(unittest.TestCase):
                 before = self.remote_head()
                 values = self.sync()
                 self.assertEqual(values["SYNC-CHANGED"], "1")
-                self.assertEqual(values["SYNC-VERSION"], "2.0.7")
+                self.assertEqual(values["SYNC-VERSION"], VERSION)
                 self.assertEqual(target.stat().st_mode & 0o777, new)
                 self.assertEqual(target.read_bytes(), original)
                 summary = f" mode change {0o100000 | old:o} => {0o100000 | new:o} {relative}\n"

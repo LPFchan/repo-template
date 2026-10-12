@@ -124,8 +124,12 @@ The current workflow requires a clean checkout, preserves the scheduled or
 manually selected branch, and stages only its captured sync changes. Its logs,
 path list, and generated commit message stay under `RUNNER_TEMP`.
 Workflow commit provenance uses the unique canonical `Project id` in
-`records/SPEC.md`, accepting its plain or backtick-wrapped form. Missing, invalid,
-or ambiguous IDs stop the commit rather than falling back to a repository name.
+`records/SPEC.md`, accepting a bullet, two-column Markdown table row or
+bold identity label and its plain or backtick-wrapped value. Existing case and underscores are preserved;
+whitespace, unsafe characters, malformed rows and multiple fields are rejected.
+Fenced examples do not declare an identity. Missing, empty, invalid or ambiguous
+IDs stop the commit; repository names and historical task trailers are never
+used as identity fallbacks.
 
 Run the regression suite with `python3 -m unittest discover -s tests -v`.
 It uses temporary local Git repositories and needs Bash, Git, Python 3, and rsync.

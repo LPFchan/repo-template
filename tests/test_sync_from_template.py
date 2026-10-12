@@ -10,6 +10,7 @@ from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[1]
+VERSION = (ROOT / "scaffold/records/REPO.md").read_text().split("**Template version: ", 1)[1].split("**", 1)[0]
 UPSTREAM = Path("records/upstream-intake")
 REGISTERS = (
     "compatibility-watchlist.md",
@@ -150,7 +151,7 @@ class TemplateSyncTests(unittest.TestCase):
         self.checkpoint()
         output = self.sync(checkpoint=False)
         self.assertIn("SYNC-CHANGED=0", output)
-        self.assertIn("SYNC-VERSION=2.0.7", output)
+        self.assertIn(f"SYNC-VERSION={VERSION}", output)
         self.assertEqual(run("git", "status", "--porcelain", cwd=self.repo), "")
 
     def test_identical_shell_scripts_gain_execute_mode_from_nonexecutable_sources(self):
@@ -176,7 +177,7 @@ class TemplateSyncTests(unittest.TestCase):
                 self.assertEqual(target.read_bytes(), (self.scaffold / name).read_bytes())
         self.assert_mode_only_diff({f"scripts/{name}": (0o644, 0o755) for name in names})
         self.assertIn("SYNC-CHANGED=1", output)
-        self.assertIn("SYNC-VERSION=2.0.7", output)
+        self.assertIn(f"SYNC-VERSION={VERSION}", output)
         self.assert_mode_sync_noop_after_commit()
 
     def test_failed_mode_only_shell_repair_preserves_file_and_version(self):
@@ -187,7 +188,7 @@ class TemplateSyncTests(unittest.TestCase):
         target.chmod(0o644)
         policy = self.repo / "records/REPO.md"
         policy.write_bytes(policy.read_bytes().replace(
-            b"**Template version: 2.0.7**", b"**Template version: 2.0.0**", 1))
+            f"**Template version: {VERSION}**".encode(), b"**Template version: 2.0.0**", 1))
         self.checkpoint()
         before = self.project_snapshot()
         original_policy = policy.read_bytes()
@@ -247,7 +248,7 @@ class TemplateSyncTests(unittest.TestCase):
                 self.assert_mode_only_diff({destination: (old, new)
                                            for destination in paths.values()})
                 self.assertIn("SYNC-CHANGED=1", output)
-                self.assertIn("SYNC-VERSION=2.0.7", output)
+                self.assertIn(f"SYNC-VERSION={VERSION}", output)
                 self.assert_mode_sync_noop_after_commit()
 
     def test_managed_markdown_loses_execute_mode_without_content_changes(self):
@@ -266,7 +267,7 @@ class TemplateSyncTests(unittest.TestCase):
         self.assertEqual(target.read_bytes(), source.read_bytes())
         self.assert_mode_only_diff({relative: (0o755, 0o644)})
         self.assertIn("SYNC-CHANGED=1", output)
-        self.assertIn("SYNC-VERSION=2.0.7", output)
+        self.assertIn(f"SYNC-VERSION={VERSION}", output)
         self.assert_mode_sync_noop_after_commit()
 
     def test_recursive_hooks_follow_source_execute_mode_both_directions(self):
@@ -293,7 +294,7 @@ class TemplateSyncTests(unittest.TestCase):
                                      (self.scaffold / relative).read_bytes())
                 self.assert_mode_only_diff({relative: (old, new) for relative in paths})
                 self.assertIn("SYNC-CHANGED=1", output)
-                self.assertIn("SYNC-VERSION=2.0.7", output)
+                self.assertIn(f"SYNC-VERSION={VERSION}", output)
                 self.assert_mode_sync_noop_after_commit()
 
     def test_recursive_mapping_repairs_directory_modes_without_content_changes(self):
@@ -314,7 +315,7 @@ class TemplateSyncTests(unittest.TestCase):
             self.assertEqual((self.repo / relative).stat().st_mode & 0o777, 0o755)
         self.assertEqual(run("git", "status", "--porcelain", cwd=self.repo), "")
         self.assertIn("SYNC-CHANGED=1", output)
-        self.assertIn("SYNC-VERSION=2.0.7", output)
+        self.assertIn(f"SYNC-VERSION={VERSION}", output)
         self.assert_mode_sync_noop_after_commit()
 
     def test_internal_recursive_root_alias_is_idempotent_and_legacy_modes_are_repaired(self):
@@ -337,7 +338,7 @@ class TemplateSyncTests(unittest.TestCase):
         self.checkpoint()
         output = self.sync(checkpoint=False)
         self.assertIn("SYNC-CHANGED=1", output)
-        self.assertIn("SYNC-VERSION=2.0.7", output)
+        self.assertIn(f"SYNC-VERSION={VERSION}", output)
         self.assertTrue(alias.is_symlink())
         self.assertEqual(os.readlink(alias), "hook-store")
         self.assertEqual(referent.stat().st_mode & 0o777, 0o755)
@@ -364,7 +365,7 @@ class TemplateSyncTests(unittest.TestCase):
 
         output = self.sync()
         self.assertIn("SYNC-CHANGED=1", output)
-        self.assertIn("SYNC-VERSION=2.0.7", output)
+        self.assertIn(f"SYNC-VERSION={VERSION}", output)
         self.assertEqual(self.script.read_bytes(),
                          (self.scaffold / "sync-from-template.sh").read_bytes())
         self.assertEqual(self.script.stat().st_mode & 0o777, 0o755)
@@ -594,7 +595,7 @@ class TemplateSyncTests(unittest.TestCase):
         original = version_file.read_text()
         version_line = next(line for line in original.splitlines()
                             if line.startswith("**Template version:"))
-        for version in ("2.0.7", "2.0.10", "2.1.0", "3.0.0"):
+        for version in ("2.0.7", VERSION, "2.0.10", "2.1.0", "3.0.0"):
             with self.subTest(version=version):
                 content = original.replace(version_line, f"**Template version: {version}**")
                 if version_file.read_text() != content:
@@ -611,8 +612,8 @@ class TemplateSyncTests(unittest.TestCase):
         source = version_file.read_text()
         version_line = next(line for line in source.splitlines()
                             if line.startswith("**Template version:"))
-        if version_line != "**Template version: 2.0.7**":
-            version_file.write_text(source.replace(version_line, "**Template version: 2.0.7**"))
+        if version_line != f"**Template version: {VERSION}**":
+            version_file.write_text(source.replace(version_line, f"**Template version: {VERSION}**"))
             commit_fixture(self.template)
         policy = self.repo / "records/REPO.md"
         for old_version in ("2.0.0", "2.0.70"):
@@ -624,7 +625,7 @@ class TemplateSyncTests(unittest.TestCase):
                 policy.chmod(0o640)
                 self.assertIn("SYNC-CHANGED=1", self.sync())
                 after = before.replace(f"**Template version: {old_version}**".encode(),
-                                       b"**Template version: 2.0.7**", 1)
+                                       f"**Template version: {VERSION}**".encode(), 1)
                 self.assertEqual(policy.read_bytes(), after)
                 self.assertEqual(policy.stat().st_mode & 0o777, 0o640)
                 self.assert_preserved(expected)
@@ -671,7 +672,7 @@ class TemplateSyncTests(unittest.TestCase):
         policy = self.repo / "records/REPO.md"
         examples = (
             ("2.0.0", b"## Local Divergence\n```md\n**Template version: 2.0.7**\n```\n"),
-            ("2.0.7", b"## Local Divergence\n**Template version: 2.0.0**\n"),
+            (VERSION, b"## Local Divergence\n**Template version: 2.0.0**\n"),
             ("2.0.0", b"## Local Divergence\n**Template version: 2.0.1**\n"
                        b"**Template version: 2.0.2**\n"),
         )
@@ -681,15 +682,15 @@ class TemplateSyncTests(unittest.TestCase):
                 policy.write_bytes(before)
                 policy.chmod(0o640)
                 output = self.sync()
-                self.assertIn(f"SYNC-CHANGED={int(current != '2.0.7')}", output)
+                self.assertIn(f"SYNC-CHANGED={int(current != VERSION)}", output)
                 self.assertEqual(policy.read_bytes(), before.replace(
-                    f"**Template version: {current}**".encode(), b"**Template version: 2.0.7**", 1))
+                    f"**Template version: {current}**".encode(), f"**Template version: {VERSION}**".encode(), 1))
                 self.assertEqual(policy.stat().st_mode & 0o777, 0o640)
         policy.write_bytes(b"# Local policy\n```\n**Template version: 2.0.1**\n```\n"
                            b"**Template version: 2.0.0**\n## Local\n")
         self.sync()
         self.assertEqual(policy.read_bytes(), b"# Local policy\n```\n**Template version: 2.0.1**\n```\n"
-                                             b"**Template version: 2.0.7**\n## Local\n")
+                                             + f"**Template version: {VERSION}**\n## Local\n".encode())
 
     def test_resolved_destinations_cannot_escape_repository(self):
         self.sync()
