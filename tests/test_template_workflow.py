@@ -82,8 +82,14 @@ class TemplateWorkflowTests(unittest.TestCase):
                "GITHUB_STEP_SUMMARY": str(self.summary),
                "GITHUB_REF_TYPE": "branch", "GITHUB_REF_NAME": self.branch,
                "TEMPLATE_URL": self.template.as_uri(), **(extra or {})}
-        return subprocess.run(["bash", "-c", workflow_step(name)], cwd=self.repo,
-                              env=env, text=True, capture_output=True, check=check)
+        try:
+            return subprocess.run(["bash", "-c", workflow_step(name)], cwd=self.repo,
+                                  env=env, text=True, capture_output=True, check=check)
+        except subprocess.CalledProcessError as error:
+            # Preserve the exception type and expose the failing shell gate.
+            print(error.stdout, end="")
+            print(error.stderr, end="")
+            raise
 
     def sync(self):
         self.output.write_text("")
