@@ -7,7 +7,7 @@ import subprocess
 import tempfile
 import unittest
 
-from test_sync_from_template import ROOT, VERSION, commit_fixture, run
+from test_sync_from_template import ROOT, VERSION, commit_fixture, copy_scaffold, run
 from unittest import mock
 
 
@@ -31,7 +31,7 @@ class TemplateWorkflowTests(unittest.TestCase):
         self.root = Path(self.temp.name)
         self.template = self.root / "template"
         scaffold = self.template / "scaffold"
-        shutil.copytree(ROOT / "scaffold", scaffold)
+        copy_scaffold(scaffold)
         run("git", "init", "-q", cwd=self.template)
         commit_fixture(self.template)
         self.origin = self.root / "origin.git"

@@ -27,11 +27,24 @@ GUIDES = (
     "reports/operator-briefs/README.md",
 )
 
+# Mode assertions assume the common 022 umask; inherited by every subprocess.
+os.umask(0o022)
+
 
 def run(*args, cwd, **kwargs):
     return subprocess.run(
         args, cwd=cwd, check=True, text=True, capture_output=True, **kwargs
     ).stdout
+
+
+def copy_scaffold(target):
+    """Copy the scaffold with the modes Git records, not the checkout's umask-dependent ones."""
+    shutil.copytree(ROOT / "scaffold", target)
+    for path in (target, *target.rglob("*")):
+        if path.is_dir():
+            path.chmod(0o755)
+        elif not path.is_symlink():
+            path.chmod(0o755 if path.stat().st_mode & 0o100 else 0o644)
 
 
 def commit_fixture(repo):
@@ -49,7 +62,7 @@ class TemplateSyncTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.template = self.root / "template"
-        shutil.copytree(ROOT / "scaffold", self.template / "scaffold")
+        copy_scaffold(self.template / "scaffold")
         run("git", "init", "-q", cwd=self.template)
         commit_fixture(self.template)
         self.scaffold = self.template / "scaffold"
