@@ -18,8 +18,8 @@ contract, so never merge through the web UI button.
 Options:
   --pr N             Pull request number. Required.
   --subject TEXT     Squash commit subject line. Required.
-  --changes-file PATH  File holding the changes:/rationale:/checks: list
-                       bodies (the three sections, with bullets). Required.
+  --changes-file PATH  File holding the changes:, rationale: and checks:
+                       sections, headers and bullets included. Required.
   --agent TEXT       Agent trailer value. Default: ${AGENT_ID:-copilot}
   --role TEXT        role trailer value. Default: orchestrator
   --project TEXT     project trailer value. Default: repo directory name
@@ -68,12 +68,11 @@ sh "$repo_root/scripts/new-commit-message.sh" \
   --subject "$subject" --agent "$agent" --role "$role" \
   --project "$project" --output "$msg_file" >/dev/null
 
-# Replace the TODO skeleton sections with the supplied bodies.
-# Sections are passed via a file descriptor, not awk -v, so backslashes survive.
+# Replace the skeleton's TODO sections, headers included, with the supplied
+# file. Sections are read via getline, not awk -v, so backslashes survive.
 awk '
   BEGIN { skip = 0 }
   /^changes:$/ {
-    print
     while ((getline line < CHANGES_FILE) > 0) print line
     print ""
     skip = 1
