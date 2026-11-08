@@ -60,6 +60,7 @@ Commit with `git commit -F <generated-file>`. Hand-written `git commit -m` is re
 
 - `.githooks/prepare-commit-msg` — rejects non-generated normal commits
 - `.githooks/commit-msg` — validates execution contract
+- `.githooks/pre-commit` — warns (never blocks) when a staged code file outside `docs/` and `records/` exceeds 1000 lines
 - Bootrap/migration commits are the only exception path
 
 Run `sh scripts/install-hooks.sh` to enable tracked hooks locally.
