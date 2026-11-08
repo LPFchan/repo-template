@@ -1,6 +1,6 @@
 # Repo Operating Model
 
-**Template version: 2.0.10**
+**Template version: 2.0.11**
 
 This document is the canonical repo contract for repo-template-style repos.
 
@@ -221,6 +221,10 @@ Required layers:
 
 - `prepare-commit-msg` hook: reject non-generated normal commits
 - `commit-msg` hook: validate the contract before commit lands
+
+Advisory layer:
+
+- `pre-commit` hook: warn, never block, when a staged code file outside `docs/` and `records/` exceeds 1000 lines
 
 Every landed commit on the default branch must satisfy the contract regardless of origin (CLI, merge queue, bot, web UI).
 
